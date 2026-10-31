@@ -1,13 +1,6 @@
 import express from 'express';
 const app = express();
 
-/*app.get('/usuarios', (req, res) => {
-    res.send ('Ok, deu bom')
-})
-
-app.listen(3000, () => {
-    console.log('LETA: http://localhost:3000/usuarios')
-}) */
 
 //TESTANDO CONEXÃO COM O BANCO DE DADOS
 import connection from './database/connection.js';
@@ -30,5 +23,5 @@ app.get('/api/funcionarios', async (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
+    console.log('LETA: http://localhost:3000/usuarios')
 });
