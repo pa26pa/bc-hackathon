@@ -2,54 +2,9 @@ import express from 'express';
 import connection from '../database/connection.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import verificarToken from '../middleware/check.js'; // Movido para o topo do arquivo
 
 const router = express.Router();
-
-/* CADASTRO
-router.post('/cadastro', async (req, res) => {
-    try {
-        const { nome, email, senha } = req.body;
-
-        if (!nome || !email || !senha) {
-            return res.status(400).json({
-                mensagem: 'Preencha todos os campos!'
-            });
-        }
-
-        // Verificar se o email já existe
-        const [usuarios] = await connection.query(
-            'SELECT id FROM usuarios WHERE email = ?',
-            [email]
-        );
-
-        if (usuarios.length > 0) {
-            return res.status(409).json({
-                mensagem: 'Email já cadastrado!'
-            });
-        }
-
-        // Criptografar a senha
-        const senhaHash = await bcrypt.hash(senha, 10);
-
-        // Inserir usuário no banco
-        await connection.query(
-            'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
-            [nome, email, senhaHash]
-        );
-
-        return res.status(201).json({
-            mensagem: 'Usuário cadastrado com sucesso!'
-        });
-
-    } catch (error) {
-        console.error(error);
-
-        return res.status(500).json({
-            mensagem: 'Erro interno do servidor'
-        });
-    }
-}); */
-
 
 // LOGIN
 router.post('/login', async (req, res) => {
@@ -107,25 +62,24 @@ router.post('/login', async (req, res) => {
 
     } catch (error) {
         console.error(error);
-
         return res.status(500).json({
             mensagem: 'Erro interno do servidor'
         });
     }
 });
 
-export default router;
+// ROTA PRO PERFIL (MIDDLEWARE) - Corrigido para router.get
+router.get('/perfil', verificarToken, async (req, res) => {
+    try {
+        const [resultado] = await connection.query(
+            'SELECT id, nome, email FROM usuarios WHERE id = ?',
+            [req.usuarioId]
+        );
+        res.json(resultado[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensagem: 'Erro ao carregar perfil' });
+    }
+});
 
-/* ROTA PRO PERFIL (MIDDLEWARE)
-import verificarToken from './middleware/check.js';
-
-app.get('/api/perfil', verificarToken, async (req, res) => {
-
-    const [resultado] = await connection.query(
-        'SELECT id, nome, email FROM usuarios WHERE id = ?',
-        [req.usuarioId]
-    );
-
-    res.json(resultado[0]);
-
-});*/
+export default router; // Movido para o final do arquivo

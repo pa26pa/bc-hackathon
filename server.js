@@ -1,18 +1,22 @@
 import express from 'express';
+import dotenv from 'dotenv';
+import authRoutes from './backend/endpoints/auth.js'; 
+import connection from './backend/database/connection.js';
+
+dotenv.config();
+
 const app = express();
 
-//TESTANDO CONEXÃO COM O BANCO DE DADOS
-import connection from './database/connection.js';
 app.use(express.json());
+
+app.use('/api', authRoutes);
 
 app.get('/api/funcionarios', async (req, res) => {
     try {
         const [resultado] = await connection.query(
             'SELECT * FROM funcionarios'
         );
-
         res.json(resultado);
-
     } catch (error) {
         console.error(error);
         res.status(500).json({
@@ -22,20 +26,5 @@ app.get('/api/funcionarios', async (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
-});
-
-// ROTAS DE AUTENTICAÇÃO
-import dotenv from 'dotenv';
-import authRoutes from './routes/auth.js';
-
-dotenv.config();
-
-app.use(express.json());
-
-// Rotas de autenticação
-app.use('/api', authRoutes);
-
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
-});
+    console.log('Servidor rodando na porta 3000: http://localhost3000/usuarios');
+})
