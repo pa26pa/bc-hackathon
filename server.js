@@ -25,11 +25,13 @@ app.listen(3000, () => {
     console.log('Servidor rodando na porta 3000');
 });
 
-// ROTAS PRO AUTH.JS
+// ROTAS DE AUTENTICAÇÃO
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 
 dotenv.config();
+
+app.use(express.json());
 
 // Rotas de autenticação
 app.use('/api', authRoutes);

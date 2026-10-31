@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
-// CADASTRO
+/* CADASTRO
 router.post('/cadastro', async (req, res) => {
     try {
         const { nome, email, senha } = req.body;
@@ -48,7 +48,7 @@ router.post('/cadastro', async (req, res) => {
             mensagem: 'Erro interno do servidor'
         });
     }
-});
+}); */
 
 
 // LOGIN
@@ -116,8 +116,8 @@ router.post('/login', async (req, res) => {
 
 export default router;
 
-// ROTA PRO PERFIL (MIDDLEWARE)
-import verificarToken from './middleware/auth.js';
+/* ROTA PRO PERFIL (MIDDLEWARE)
+import verificarToken from './middleware/check.js';
 
 app.get('/api/perfil', verificarToken, async (req, res) => {
 
@@ -128,4 +128,4 @@ app.get('/api/perfil', verificarToken, async (req, res) => {
 
     res.json(resultado[0]);
 
-});
+});*/
