@@ -1,7 +1,6 @@
 import express from 'express';
 const app = express();
 
-
 //TESTANDO CONEXÃO COM O BANCO DE DADOS
 import connection from './database/connection.js';
 app.use(express.json());
@@ -23,5 +22,18 @@ app.get('/api/funcionarios', async (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('LETA: http://localhost:3000/usuarios')
+    console.log('Servidor rodando na porta 3000');
+});
+
+// ROTAS PRO AUTH.JS
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
+
+dotenv.config();
+
+// Rotas de autenticação
+app.use('/api', authRoutes);
+
+app.listen(3000, () => {
+    console.log('Servidor rodando na porta 3000');
 });
