@@ -130,7 +130,7 @@ router.post('/teste_email', async(req,res) => {
     })
 })
 
-router.post('/checar_email', verificarToken, async(req,res) => {
+router.post('/checar_codigo', verificarToken, async(req,res) => {
     const codigo_guardado = req.usuarioCodigo
     const codigo_inserido = req.codigo
 
