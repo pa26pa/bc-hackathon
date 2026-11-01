@@ -3,7 +3,7 @@ const button = document.getElementById('teste')
 
 button.addEventListener("click", async() => {
     const novoUsuario = {
-        email: 'leta@gmail.com',
+        email: 'teste@gmail.com',
         senha: '123456'
     };
         try {
