@@ -129,5 +129,20 @@ router.post('/teste_email', async(req,res) => {
         token: token
     })
 })
+
+router.post('/checar_email', verificarToken, async(req,res) => {
+    const codigo_guardado = req.usuarioCodigo
+    const codigo_inserido = req.codigo
+
+    if (codigo_guardado !== codigo_inserido) {
+        res.status(400).json({
+            mensagem: 'Codigo incorreto'
+        })   
+    }
+    
+    res.status(200).json({
+        mensagem: 'Codigo correto'
+    })   
+})
 // Lari, faz o codigo antes dele Não depois
 export default router
