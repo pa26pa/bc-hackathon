@@ -6,8 +6,8 @@ button.addEventListener("click", async() => {
         email: 'teste@gmail.com',
         senha: '123456'
     };
-        try {
-            const resposta = await fetch('http://localhost:3000/api/login', {
+    try {
+        const resposta = await fetch('http://localhost:3000/api/login', {
             method: 'POST',
 
             headers: {
