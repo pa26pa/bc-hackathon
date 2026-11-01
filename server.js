@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './backend/endpoints/auth.js'; 
 import connection from './backend/database/connection.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -10,6 +12,13 @@ const app = express();
 app.use(express.json());
 
 app.use('/api', authRoutes);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'home.html'));
+});
 
 app.get('/api/funcionarios', async (req, res) => {
     try {
@@ -26,5 +35,5 @@ app.get('/api/funcionarios', async (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000: http://localhost3000/usuarios');
+    console.log('Servidor rodando na porta 3000: http://localhost:3000/');
 })

@@ -2,11 +2,10 @@ import express from 'express';
 import connection from '../database/connection.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import verificarToken from '../middleware/check.js'; // Movido para o topo do arquivo
+import verificarToken from '../middleware/check.js'; 
 
 const router = express.Router();
 
-// LOGIN
 router.post('/login', async (req, res) => {
     try {
         const { email, senha } = req.body;
@@ -17,7 +16,6 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Procurar usuário pelo email
         const [resultado] = await connection.query(
             'SELECT * FROM usuarios WHERE email = ?',
             [email]
@@ -31,7 +29,6 @@ router.post('/login', async (req, res) => {
 
         const usuario = resultado[0];
 
-        // Comparar senha digitada com hash armazenado
         const senhaCorreta = await bcrypt.compare(
             senha,
             usuario.senha
@@ -43,11 +40,10 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Gerar token de autenticação
         const token = jwt.sign(
             { id: usuario.id },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '5h' }
         );
 
         return res.status(200).json({
@@ -68,7 +64,6 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// ROTA PRO PERFIL (MIDDLEWARE) - Corrigido para router.get
 router.get('/perfil', verificarToken, async (req, res) => {
     try {
         const [resultado] = await connection.query(
@@ -76,10 +71,40 @@ router.get('/perfil', verificarToken, async (req, res) => {
             [req.usuarioId]
         );
         res.json(resultado[0]);
+        return res.status(200).json({
+            mensagem: 'Perfil validado',
+            token: token,
+            info: {
+                nome: resultado.nome,
+                email: resultado.email
+            }
+        })
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ mensagem: 'Erro ao carregar perfil' });
     }
 });
 
-export default router; // Movido para o final do arquivo
+router.get('/horarios',  verificarToken, async (req, res) => {
+    try {
+        const resultado = await connection.query(
+            'select * from horarios'
+        );
+        
+        res.status(200).json({
+            mensagem: 'Horarios requisitados com sucesso',
+            token: token,
+            horarios: resultado
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            mensagem: 'Erro ao requisitar dados'
+        })
+    }
+});
+
+// Lari, faz o codigo antes dele Não depois
+export default router
