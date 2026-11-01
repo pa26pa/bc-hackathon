@@ -1,5 +1,6 @@
 import express from 'express';
 import connection from '../database/connection.js';
+import enviar_email from '../middleware/email_sender.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import verificarToken from '../middleware/check.js'; 
@@ -106,5 +107,27 @@ router.get('/horarios',  verificarToken, async (req, res) => {
     }
 });
 
+router.post('/teste_email', async(req,res) => {
+    const email = req.email;
+    const codigo = Math.floor(Math.random() * 900000) + 100000;
+    const resposta = await enviar_email(email, codigo)
+    
+    if (!resposta) {
+        res.status(500).json({
+            mensagem: 'Não foi possivel enviar o email'
+        })    
+    }
+
+    const token = jwt.sign(
+        { codigo: codigo },
+        process.env.JWT_SECRET,
+        { expiresIn: '10m' }
+    );
+
+    res.status(200).json({
+        mensagem: 'Email enviado sucesso',
+        token: token
+    })
+})
 // Lari, faz o codigo antes dele Não depois
 export default router
