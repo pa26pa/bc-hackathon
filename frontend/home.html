@@ -1,14 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>BC | Bruno Consultas</title>
 </head>
 <body> 
+    <!--TELA LOGIN-->
+    <div id="login-div" class="div-principal">
+        <div class="login-box">
+            <form action="post" id="login-form" class="login-form">
+                <h1>Login</h1>
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" required autocomplete="email"><br>
+                <p class="erro" id="email-erro">O email não está correto.</p>
+                <label for="senha">Senha:</label><br>
+                <input type="password" id="senha" name="senha" required autocomplete="current-password"><br>
+                <ul id="requisitos" class="requisitos">
+                    <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
+                    <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
+                    <li data-req="numero"><span class="icone">✗</span> Um número</li>
+                    <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
+                </ul>
+                <p class="erro" id="senha-erro">A senha não está correta.</p>
+                <button type="submit" id="btn-login">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!--TELA DO SITE-->
+    <div id="home-div" class="div-principal">
+
+    </div>
+
     <!-- Oie, ignora esse botão, só fiz para testar e ter uma ideia de coo vai funcionar-->
     <button id="teste"> aperta </button>
-
     <script type="module" src="/script.js"></script>
 </body>
 </html>

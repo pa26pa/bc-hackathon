@@ -1,0 +1,106 @@
+/* RESET PADRÃO */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* BODY */
+body {
+    width: 100%;
+    min-height: 100vh;
+    background-color: rgb(241, 180, 249);
+}
+
+/* ESCONDER TELA HOME */
+#home-div {
+    display: none;
+}
+
+/* DIV DO LOGIN */
+.div-principal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid red;
+}
+
+#home-div {background-color: rgb(40, 5, 45);}
+
+/* CAIXA DE LOGIN */
+.login-box {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    width: max-content;
+    min-width: 300px;
+}
+
+/* FORMULÁRIO */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.login-form label{
+    margin-bottom: -7px;
+}
+
+/* INPUTS */
+input {
+    border-radius: 8px;
+    padding: 10px;
+    outline: none;
+    border: 2px solid rgba(0, 0, 0, 0.373);
+    transition: 0.2s ease;
+}
+
+input:hover,
+input:focus {
+    border: 2px solid rgba(55, 3, 44, 0.688);
+}
+
+/* BOTÕES */
+button {
+    transition: 0.2s ease;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgb(248, 247, 249);
+    background-color: rgb(98, 29, 152);
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: rgb(142, 44, 216);
+}
+
+.esqueci-a-senha{
+    font-size: 13px;
+    color:rgb(29, 115, 152)
+}
+
+/* BOTÃO DE TESTE */
+#teste {
+    position: relative;
+    z-index: 10;
+}
+.erro { color: red; font-size: 14px; margin: 4px 0; }
+.erro:empty { display: none; }
+
+.requisitos {
+  display: none;          /* escondida até focar no input */
+  list-style: none;
+  padding: 0;
+  margin: 6px 0;
+  font-size: 14px;
+}
+.requisitos.visivel { display: block; }
+
+.requisitos li { color: red; }
+.requisitos li.ok { color: green; }
