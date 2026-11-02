@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: usuario.id },
+            { id: usuario.id, email: usuario.email, status: usuario.status_user},
             process.env.JWT_SECRET,
             { expiresIn: '5h' }
         );
@@ -66,25 +66,20 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/perfil', verificarToken, async (req, res) => {
-    try {
-        const [resultado] = await connection.query(
-            'SELECT id, nome, email FROM usuarios WHERE id = ?',
-            [req.usuarioId]
-        );
-        res.json(resultado[0]);
-        return res.status(200).json({
-            mensagem: 'Perfil validado',
-            token: token,
-            info: {
-                nome: resultado.nome,
-                email: resultado.email
-            }
-        })
-
-    } catch (error) {
-        console.error(error);
+    
+    if (!req.email) {
         res.status(500).json({ mensagem: 'Erro ao carregar perfil' });
     }
+
+    return res.status(200).json({
+        mensagem: 'Perfil validado',
+        token: token,
+        info: {
+            email: req.email,
+            status: req.status
+        }
+    })
+
 });
 
 router.get('/horarios',  verificarToken, async (req, res) => {
@@ -107,7 +102,7 @@ router.get('/horarios',  verificarToken, async (req, res) => {
     }
 });
 
-router.post('/teste_email', async(req,res) => {
+router.post('/enviando_codigo', async(req,res) => {
     const email = req.email;
     const codigo = Math.floor(Math.random() * 900000) + 100000;
     const resposta = await enviar_email(email, codigo)
@@ -119,7 +114,7 @@ router.post('/teste_email', async(req,res) => {
     }
 
     const token = jwt.sign(
-        { codigo: codigo },
+        { codigo: codigo, email: email},
         process.env.JWT_SECRET,
         { expiresIn: '10m' }
     );
@@ -131,8 +126,8 @@ router.post('/teste_email', async(req,res) => {
 })
 
 router.post('/checar_codigo', verificarToken, async(req,res) => {
-    const codigo_guardado = req.usuarioCodigo
-    const codigo_inserido = req.codigo
+    const codigo_guardado = req.usuarioCodigo;
+    const {codigo_inserido} = req.body;
 
     if (codigo_guardado !== codigo_inserido) {
         res.status(400).json({
@@ -144,5 +139,58 @@ router.post('/checar_codigo', verificarToken, async(req,res) => {
         mensagem: 'Codigo correto'
     })   
 })
+
+router.post('/redefinir_senha', verificarToken, async(req,res) => {
+    const {senha_nova} = req.body;
+    const email = req.email;
+
+    const senha_criptografada = await bcrypt.hash(senha_nova, 10);
+
+    try {
+        const resultado = await connection.query(
+            "update usuarios set senha = ? where email = ?",[senha_criptografada, email]
+        )
+
+    } catch (error) {
+        res.status(500).json({
+            mensagem: 'Erro interno do servidor: ', error
+        })
+    }
+
+    res.status(200).json({
+        mensagem: 'Senha atualixada com sucesso'
+    })
+})
+
+router.post('/atualizar_email_senha', verificarToken, async(req,res) => {
+    const { email, senha} = req.body;
+    const email_antigo = req.email;
+    
+    const senha_pronta = await bcrypt.hash(senha, 10);
+
+    try {
+        const resultado = connection.query(
+            'update usuario set email = ?, senha = ?, status_user = "admim" where email = ?',[email,senha_pronta,email_antigo]
+        )
+
+        const token = jwt.sign(
+            { status: 'admim'},
+            process.env.JWT_SECRET,
+            { expiresIn: '5h' }
+        );
+
+        res.status(200).json({
+            mensagem: 'Email e senha atualizados corretamente',
+            token: token
+        })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            mensagem: 'Erro interno'
+        })
+    }
+})
+
 // Lari, faz o codigo antes dele Não depois
 export default router
