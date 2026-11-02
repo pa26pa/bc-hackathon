@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: usuario.id },
+            { id: usuario.id, email: usuario.email},
             process.env.JWT_SECRET,
             { expiresIn: '5h' }
         );
@@ -107,7 +107,7 @@ router.get('/horarios',  verificarToken, async (req, res) => {
     }
 });
 
-router.post('/teste_email', async(req,res) => {
+router.post('/enviando_codigo', async(req,res) => {
     const email = req.email;
     const codigo = Math.floor(Math.random() * 900000) + 100000;
     const resposta = await enviar_email(email, codigo)
@@ -119,7 +119,7 @@ router.post('/teste_email', async(req,res) => {
     }
 
     const token = jwt.sign(
-        { codigo: codigo },
+        { codigo: codigo, email: email},
         process.env.JWT_SECRET,
         { expiresIn: '10m' }
     );
@@ -131,8 +131,8 @@ router.post('/teste_email', async(req,res) => {
 })
 
 router.post('/checar_codigo', verificarToken, async(req,res) => {
-    const codigo_guardado = req.usuarioCodigo
-    const codigo_inserido = req.codigo
+    const codigo_guardado = req.usuarioCodigo;
+    const {codigo_inserido} = req.body;
 
     if (codigo_guardado !== codigo_inserido) {
         res.status(400).json({
@@ -144,5 +144,28 @@ router.post('/checar_codigo', verificarToken, async(req,res) => {
         mensagem: 'Codigo correto'
     })   
 })
+
+router.post('/redefinir_senha', verificarToken, async(req,res) => {
+    const {senha_nova} = req.body;
+    const email = req.email;
+
+    const senha_criptografada = await bcrypt.hash(senha_nova, 10);
+
+    try {
+        const resultado = await connection.query(
+            "update usuarios set senha = ? where email = ?",[senha_criptografada, email]
+        )
+
+    } catch (error) {
+        res.status(500).json({
+            mensagem: 'Erro interno do servidor: ', error
+        })
+    }
+
+    res.status(200).json({
+        mensagem: 'Senha atualixada com sucesso'
+    })
+})
+
 // Lari, faz o codigo antes dele Não depois
 export default router

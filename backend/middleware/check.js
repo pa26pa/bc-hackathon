@@ -20,6 +20,7 @@ function verificarToken(req, res, next) {
         );
 
         req.usuarioId = dados.id;
+
         if (dados.codigo) {
             req.usuarioCodigo = dados.codigo
         }
