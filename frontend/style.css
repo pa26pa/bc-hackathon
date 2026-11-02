@@ -1,3 +1,19 @@
+/* aqui em baixo é style, feito pelo guilherme gostoso coloquei em cima pq não tava lendo*/
+style:root {
+    --indigo-900: #1f1250;   /* roxo escuro do "B" e do texto */
+    --indigo-700: #2f1c75;
+    --violet-500: #8a52f0;   /* violeta do "C" e da estrela */
+    --violet-300: #bfa2fa;
+    --lavender-100: #f1ecfd;
+    --lavender-50: #f8f6fe;
+    --white: #ffffff;
+    --ink-soft: #5b5278;
+    --line: #e2d9f7;
+    --radius-lg: 20px;
+    --radius-sm: 10px;
+    --font: "Sora", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
 /* RESET PADRÃO */
 * {
     margin: 0;
@@ -13,9 +29,15 @@ body {
     background-color: rgb(241, 180, 249);
 }
 
-/* ESCONDER TELA HOME */
+/* ESCONDER TELA HOME 
+Alteração por guilherme apenas pra poder ver como esta minha table, dps eu volto pro display none!!*/
 #home-div {
-    display: none;
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* display: none; */
 }
 
 /* DIV DO LOGIN */
@@ -28,10 +50,11 @@ body {
     border: 1px solid red;
 }
 
-#home-div {background-color: rgb(40, 5, 45);}
+#home-div {background-color: var(--indigo-300);}
 
 /* CAIXA DE LOGIN */
 .login-box {
+    display: none;
     background-color: white;
     padding: 40px;
     border-radius: 12px;
@@ -101,6 +124,36 @@ button:hover {
   font-size: 14px;
 }
 .requisitos.visivel { display: block; }
-
+/*não entendi oq vc quis dizer...*/
 .requisitos li { color: red; }
 .requisitos li.ok { color: green; }
+
+  /*aqui eu fiz a tabela dos horários e coloquei no css
+  ta bem mal feito mas da pra entender, depois eu melhoro*/
+table {
+  width: 100%;
+  border-collapse: collapse;   /* junta as bordas das celulas em uma só */
+}
+
+th, td {
+  padding: .85rem .9rem;       /* espaçamento interno */
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+thead th {
+  background: var(--indigo-900);
+  color: var(--white);
+}
+
+tbody td:first-child {         /* coluna dos horários */
+  background: var(--lavender-100);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+td[colspan] {                  /* linha do intervalo */
+  background: var(--lavender-100);
+  text-align: center;
+  font-weight: 600;
+}
