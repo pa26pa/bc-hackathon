@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const telaSite = document.getElementById('home-div');
     const emailInput = document.getElementById('email');
     const senhaInput = document.getElementById('senha');
-    const btnLogin = document.getElementById('login-button');
+    const btnLogin = document.getElementById('btn-login');
     const emailErro = document.getElementById('email-erro');
     const senhaErro = document.getElementById('senha-erro');
     const listaRequisitos = document.getElementById('requisitos');
@@ -82,14 +82,16 @@ document.addEventListener("DOMContentLoaded", function() {
         btnLogin.disabled = true; // evita cliques duplicados
 
         try {
+            console.log(emailInput.value.trim());
+            console.log(senhaInput.value.trim());
             const resposta = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: emailInput.value.trim(),
-                senha: senhaInput.value,
-            }),
-        });
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: emailInput.value.trim(),
+                    senha: senhaInput.value,
+                }),
+            });
 
             const dados = await resposta.json();
 
@@ -108,34 +110,34 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // OI LARI, mano ignora esse código, fiz para termos uma ideia de como chamar a API
-const button = document.getElementById('teste')
+// const button = document.getElementById('teste')
 
-button.addEventListener("click", async() => {
-    const novoUsuario = {
-        email: 'teste@gmail.com',
-        senha: '123456'
-    };
-    try {
-        const resposta = await fetch('http://localhost:3000/api/teste_email', {
-            method: 'POST',
+// button.addEventListener("click", async() => {
+//     const novoUsuario = {
+//         email: 'teste@gmail.com',
+//         senha: '123456'
+//     };
+//     try {
+//         const resposta = await fetch('http://localhost:3000/api/teste_email', {
+//             method: 'POST',
 
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(novoUsuario)
-        });
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify(novoUsuario)
+//         });
 
-        const resultado = await resposta.json();
+//         const resultado = await resposta.json();
 
-        if (resposta.ok) {
-            console.log('Login realizado com sucesso:', resultado);
-        } else {
-            console.log('Erro:', resultado.mensagem);         
-        }
+//         if (resposta.ok) {
+//             console.log('Login realizado com sucesso:', resultado);
+//         } else {
+//             console.log('Erro:', resultado.mensagem);         
+//         }
 
-    } catch (error) {
-        console.error('Erro ao conectar com o servidor:', error);
-    }
+//     } catch (error) {
+//         console.error('Erro ao conectar com o servidor:', error);
+//     }
 
-    alert("Button was clicked!");
-});
+//     alert("Button was clicked!");
+// });

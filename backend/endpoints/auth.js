@@ -23,6 +23,8 @@ router.post('/login', async (req, res) => {
         );
 
         if (resultado.length === 0) {
+            console.log(resultado.length);
+
             return res.status(401).json({
                 mensagem: 'Email ou senha incorretos!'
             });
@@ -42,7 +44,7 @@ router.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: usuario.id, email: usuario.email, status: usuario.status_user},
+            { id: usuario.id_usuario, email: usuario.email, status: usuario.status_user},
             process.env.JWT_SECRET,
             { expiresIn: '5h' }
         );
