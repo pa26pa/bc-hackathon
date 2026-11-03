@@ -8,6 +8,8 @@ import verificarToken from '../middleware/check.js';
 const router = express.Router();
 
 router.post('/login', async (req, res) => {
+    console.log('req:', req);
+
     try {
         const { email, senha } = req.body;
 
@@ -53,7 +55,7 @@ router.post('/login', async (req, res) => {
             mensagem: 'Login realizado com sucesso!',
             token: token,
             usuario: {
-                id: usuario.id,
+                id: usuario.id_usuario,
                 nome: usuario.nome,
                 email: usuario.email
             }
@@ -67,21 +69,23 @@ router.post('/login', async (req, res) => {
     }
 });
 
-router.get('/perfil', verificarToken, async (req, res) => {
-    
+router.get('/perfil', verificarToken, (req, res) => {
+    console.log('EMAIL:', req.email);
+    console.log('STATUS:', req.status);
+
     if (!req.email) {
-        res.status(500).json({ mensagem: 'Erro ao carregar perfil' });
+        return res.status(500).json({
+            mensagem: 'Erro ao carregar perfil'
+        });
     }
 
     return res.status(200).json({
         mensagem: 'Perfil validado',
-        token: token,
         info: {
             email: req.email,
             status: req.status
         }
-    })
-
+    });
 });
 
 router.get('/horarios',  verificarToken, async (req, res) => {

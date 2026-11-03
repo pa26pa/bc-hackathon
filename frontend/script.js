@@ -1,4 +1,40 @@
 document.addEventListener("DOMContentLoaded", function() {
+    
+    async function verificar_token() {
+        try {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                console.log('Nenhum token encontrado.');
+                return null;
+            }
+
+            const resposta = await fetch('/api/perfil', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const dados = await resposta.json();
+            console.log('Resposta do perfil:', dados);
+
+            if (resposta.ok) {
+                return {
+                    email: dados.info.email,
+                    status: dados.info.status
+                };
+            } else {
+                console.log('Erro ao validar token:', resposta.status, dados);
+                return null;
+            }
+
+        } catch (error) {
+            console.log('Erro ao contatar a API:', error);
+            return null;
+        }
+    }
+
     const form = document.getElementById('login-form');
     const telaLogin = document.getElementById('login-div');
     const telaSite = document.getElementById('home-div');
@@ -82,22 +118,29 @@ document.addEventListener("DOMContentLoaded", function() {
         btnLogin.disabled = true; // evita cliques duplicados
 
         try {
-            console.log(emailInput.value.trim());
-            console.log(senhaInput.value.trim());
+            console.log('yey')
             const resposta = await fetch('/api/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
                     email: emailInput.value.trim(),
                     senha: senhaInput.value,
                 }),
             });
-
+            console.log('yeyeye');
             const dados = await resposta.json();
 
             if (resposta.ok) {
                 telaLogin.style.display = 'none';
                 telaSite.style.display = 'flex';
+                localStorage.setItem('token', dados.token);
+                info = await verificar_token()
+
+                if (info.email) {
+                    alert('UHUUUUUUUUUUUU');
+                }
             } else {
                 senhaErro.textContent = dados.mensagem || 'Falha no login.';
                 btnLogin.disabled = false;
@@ -107,6 +150,8 @@ document.addEventListener("DOMContentLoaded", function() {
             btnLogin.disabled = false;
         }
     });
+
+    verificar_token();
 });
 
 // OI LARI, mano ignora esse código, fiz para termos uma ideia de como chamar a API
