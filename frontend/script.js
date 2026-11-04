@@ -39,6 +39,8 @@ document.addEventListener("DOMContentLoaded", function() {
             li.classList.toggle('ok', cumprido);
             icone.textContent = cumprido ? '✓' : '✗';
 
+            if (icone === '✓') {icone.style.color = 'green';} else {icone.style.color = 'red';}
+
             if (!cumprido) tudoOk = false;
         }
 
@@ -107,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-// OI LARI, mano ignora esse código, fiz para termos uma ideia de como chamar a API
+/* OI LARI, mano ignora esse código, fiz para termos uma ideia de como chamar a API
 const button = document.getElementById('teste')
 
 button.addEventListener("click", async() => {
@@ -139,3 +141,4 @@ button.addEventListener("click", async() => {
 
     alert("Button was clicked!");
 });
+*/
