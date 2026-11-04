@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bruno Consultas - Horários de aula</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* ===== Identidade visual (extraída do logo) ===== */
+  :root {
+    --indigo-900: #1f1250;   /* roxo escuro do "B" e do texto */
+    --indigo-700: #2f1c75;
+    --violet-500: #8a52f0;   /* violeta do "C" e da estrela */
+    --violet-300: #bfa2fa;
+    --lavender-100: #f1ecfd;
+    --lavender-50: #f8f6fe;
+    --white: #ffffff;
+    --ink-soft: #5b5278;
+    --line: #e2d9f7;
+    --radius-lg: 20px;
+    --radius-sm: 10px;
+    --font: "Sora", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--indigo-900);
+    background: var(--lavender-50);
+    line-height: 1.6;
+  }
+  h1, h2, h3, p { margin: 0; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--violet-500); outline-offset: 2px; }
+
+  .container { width: min(1120px, 100% - 2.5rem); margin-inline: auto; }
+
+  /* ===== Cabeçalho ===== */
+  .topbar { background: var(--white); border-bottom: 1px solid var(--line); }
+  .topbar .container {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; padding-block: .9rem;
+  }
+  .brand { display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+  .brand svg { width: 52px; height: 52px; flex: none; }
+  .brand-name { font-weight: 800; letter-spacing: .22em; font-size: 1.05rem; line-height: 1.1; }
+  .brand-sub { display: block; font-weight: 400; letter-spacing: .38em; font-size: .78rem; color: var(--violet-500); }
+  .nav { display: flex; gap: .4rem; }
+  .nav a {
+    text-decoration: none; font-weight: 600; font-size: .92rem;
+    padding: .5rem .9rem; border-radius: 999px; color: var(--ink-soft);
+  }
+  .nav a[aria-current="page"] { background: var(--lavender-100); color: var(--indigo-900); }
+
+  /* ===== Hero ===== */
+  .hero { background: var(--indigo-900); color: var(--white); position: relative; overflow: hidden; }
+  .hero .container { padding-block: 3.5rem 4.5rem; position: relative; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 800; line-height: 1.1; max-width: 16ch; }
+  .hero p { margin-top: 1rem; max-width: 52ch; color: #d9ccfb; }
+  .hero .spark { position: absolute; right: 4%; top: 18%; width: clamp(80px, 14vw, 170px); opacity: .9; }
+  .hero::after {
+    content: ""; position: absolute; right: -90px; bottom: -130px;
+    width: 340px; height: 340px; border-radius: 50%;
+    border: 60px solid var(--violet-500); border-right-color: transparent; opacity: .35;
+  }
+
+  /* ===== Filtros ===== */
+  .filters {
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 1.25rem; margin-top: -2.5rem; position: relative; z-index: 1;
+    box-shadow: 0 18px 40px -22px rgba(47, 28, 117, .45);
+    display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); align-items: end;
+  }
+  .field label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: .35rem; color: var(--ink-soft); }
+  .field select {
+    width: 100%; font: inherit; font-size: .95rem; color: var(--indigo-900);
+    padding: .7rem .8rem; border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: var(--lavender-50);
+  }
+  .btn {
+    font: inherit; font-weight: 600; cursor: pointer; border: 0; border-radius: var(--radius-sm);
+    padding: .75rem 1.2rem; background: var(--violet-500); color: var(--white);
+  }
+  .btn.ghost { background: var(--lavender-100); color: var(--indigo-900); }
+  .btn-row { display: flex; gap: .6rem; }
+
+  /* ===== Seções ===== */
+  main section { padding-block: 3rem 0; }
+  .section-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .section-head h2 { font-size: 1.5rem; font-weight: 800; }
+  .section-head p { color: var(--ink-soft); font-size: .95rem; }
+
+  /* ===== Grade semanal ===== */
+  .table-wrap { overflow-x: auto; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+  table { width: 100%; min-width: 760px; border-collapse: collapse; }
+  th, td { padding: .85rem .9rem; text-align: left; border-bottom: 1px solid var(--line); font-size: .9rem; vertical-align: top; }
+  thead th { background: var(--indigo-900); color: var(--white); font-weight: 600; }
+  tbody th { background: var(--lavender-100); font-weight: 600; white-space: nowrap; }
+  tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+  td + td, th + th { border-left: 1px solid var(--line); }
+  .slot { display: block; border-left: 4px solid var(--violet-500); background: var(--lavender-50); border-radius: 6px; padding: .4rem .6rem; }
+  .slot strong { display: block; font-weight: 600; }
+  .slot span { color: var(--ink-soft); font-size: .8rem; }
+  .slot.alt { border-left-color: var(--indigo-700); }
+  .empty { color: var(--violet-300); }
+
+  /* ===== Professores e disciplinas ===== */
+  .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  .card { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1.1rem 1.2rem; display: flex; gap: .9rem; align-items: center; }
+  .avatar {
+    width: 44px; height: 44px; flex: none; border-radius: 50%;
+    background: var(--lavender-100); border: 2px solid var(--violet-300);
+  }
+  .card h3 { font-size: 1rem; font-weight: 600; }
+  .card p { font-size: .85rem; color: var(--ink-soft); }
+
+  /* ===== Rodapé ===== */
+  footer { margin-top: 4rem; background: var(--indigo-900); color: #d9ccfb; }
+  footer .container { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-block: 1.75rem; font-size: .88rem; }
+
+  @media (max-width: 640px) {
+    .nav { display: none; }
+    .hero .spark { opacity: .45; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<!-- Símbolos reutilizáveis -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="sparkle" viewBox="0 0 40 40">
+    <path d="M20 0 C21.5 11 29 18.5 40 20 C29 21.5 21.5 29 20 40 C18.5 29 11 21.5 0 20 C11 18.5 18.5 11 20 0Z" fill="currentColor"/>
+  </symbol>
+  <symbol id="logo-bc" viewBox="0 0 120 100">
+    <!-- B -->
+    <path d="M6 14 Q6 6 14 6 H44 Q64 6 64 28 Q64 40 55 45 Q68 50 68 66 Q68 90 46 90 H14 Q6 90 6 82 Z" fill="#1f1250"/>
+    <rect x="24" y="22" width="22" height="14" rx="5" fill="#ffffff"/>
+    <rect x="24" y="58" width="24" height="14" rx="5" fill="#ffffff"/>
+    <!-- C -->
+    <path d="M104 30 A34 34 0 1 0 104 76" fill="none" stroke="#8a52f0" stroke-width="20" stroke-linecap="butt"/>
+    <!-- estrela -->
+    <use href="#sparkle" x="94" y="0" width="22" height="22" style="color:#8a52f0"/>
+  </symbol>
+</svg>
+
+<header class="topbar">
+  <div class="container">
+    <a class="brand" href="#">
+      <svg role="img" aria-label="Logo Bruno Consultas"><use href="#logo-bc"/></svg>
+      <span class="brand-name">BRUNO <span class="brand-sub">CONSULTAS</span></span>
+    </a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#grade" aria-current="page">Grade semanal</a>
+      <a href="#professores">Professores</a>
+      <a href="#sobre">Sobre</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="titulo">
+  <div class="container">
+    <h1 id="titulo">Os horários das suas aulas, em um só lugar.</h1>
+    <p>Consulte a grade das seis turmas de Desenvolvimento de Sistemas por turma, professor, dia da semana ou sala.</p>
+    <svg class="spark" aria-hidden="true" style="color:#8a52f0"><use href="#sparkle"/></svg>
+  </div>
+</section>
+
+<main class="container">
+
+  <!-- Filtros (apenas visual) -->
+  <div class="filters" role="group" aria-label="Filtros de consulta">
+    <div class="field">
+      <label for="f-turma">Turma</label>
+      <select id="f-turma"><option>Todas as turmas</option></select>
+    </div>
+    <div class="field">
+      <label for="f-prof">Professor</label>
+      <select id="f-prof"><option>Todos os professores</option></select>
+    </div>
+    <div class="field">
+      <label for="f-dia">Dia da semana</label>
+      <select id="f-dia"><option>Todos os dias</option></select>
+    </div>
+    <div class="field">
+      <label for="f-sala">Laboratório ou sala</label>
+      <select id="f-sala"><option>Todas as salas</option></select>
+    </div>
+    <div class="btn-row">
+      <button class="btn" type="button">Consultar</button>
+      <button class="btn ghost" type="button">Limpar</button>
+    </div>
+  </div>
+
+  <!-- Grade -->
+  <section id="grade" aria-labelledby="t-grade">
+    <div class="section-head">
+      <h2 id="t-grade">Grade semanal</h2>
+      <p>Turma selecionada: nome da turma</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Horário</th>
+            <th scope="col">Segunda</th>
+            <th scope="col">Terça</th>
+            <th scope="col">Quarta</th>
+            <th scope="col">Quinta</th>
+            <th scope="col">Sexta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">00:00 – 00:00</th>
+            <td><span class="slot"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="slot alt"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="empty">—</span></td>
+            <td><span class="slot"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="slot alt"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+          </tr>
+          <tr>
+            <th scope="row">00:00 – 00:00</th>
+            <td><span class="slot alt"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="slot"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="slot"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="empty">—</span></td>
+            <td><span class="slot"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+          </tr>
+          <tr>
+            <th scope="row">00:00 – 00:00</th>
+            <td><span class="empty">—</span></td>
+            <td><span class="slot alt"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="slot alt"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="slot"><strong>Disciplina</strong><span>Professor · Sala</span></span></td>
+            <td><span class="empty">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Professores -->
+  <section id="professores" aria-labelledby="t-prof">
+    <div class="section-head">
+      <h2 id="t-prof">Quem ensina cada disciplina</h2>
+      <p>Professor responsável e turmas atendidas.</p>
+    </div>
+    <div class="cards">
+      <article class="card"><div class="avatar" aria-hidden="true"></div><div><h3>Nome do professor</h3><p>Disciplina · Turmas</p></div></article>
+      <article class="card"><div class="avatar" aria-hidden="true"></div><div><h3>Nome do professor</h3><p>Disciplina · Turmas</p></div></article>
+      <article class="card"><div class="avatar" aria-hidden="true"></div><div><h3>Nome do professor</h3><p>Disciplina · Turmas</p></div></article>
+    </div>
+  </section>
+
+  <!-- Sobre -->
+  <section id="sobre" aria-labelledby="t-sobre">
+    <div class="section-head">
+      <h2 id="t-sobre">Sobre o projeto</h2>
+    </div>
+    <p style="max-width: 62ch; color: var(--ink-soft);">Espaço para a descrição do projeto, do grupo e do curso de Desenvolvimento de Sistemas.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <span>Bruno Consultas</span>
+    <span>Hackathon de Banco de Dados 2 · 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>
