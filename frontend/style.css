@@ -134,21 +134,15 @@ body {
 #login-div {
     background-color: rgb(241, 180, 249);
 }
-<<<<<<< HEAD
-
 /* ESCONDER TELA HOME 
-Alteração por guilherme apenas pra poder ver como esta minha table, dps eu volto pro display none!!*/
-=======
-/* ESCONDER TELA HOME *//*
->>>>>>> 906da3889bced7df12db12762e696a946641423f
 #home-div {
     position: fixed;
     inset: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* display: none; */
-}
+    /* display: none; 
+}*/
 /* DIV DO LOGIN *//*
 .div-principal {
     position: fixed;
@@ -158,12 +152,7 @@ Alteração por guilherme apenas pra poder ver como esta minha table, dps eu vol
     align-items: center;
     border: 4px solid red;
 }
-<<<<<<< HEAD
-
-#home-div {background-color: var(--indigo-300);}
-=======
 #home-div {background-color: rgb(40, 5, 45);}
->>>>>>> 906da3889bced7df12db12762e696a946641423f
 
 /* CAIXA DE LOGIN *//*
 .login-box {
@@ -238,40 +227,6 @@ button:hover {
   font-size: 14px;
 }
 .requisitos.visivel { display: block; }
-/*não entendi oq vc quis dizer...*/
+/*não entendi oq vc quis dizer...
 .requisitos li { color: red; }
-<<<<<<< HEAD
-.requisitos li.ok { color: green; }
-
-  /*aqui eu fiz a tabela dos horários e coloquei no css
-  ta bem mal feito mas da pra entender, depois eu melhoro*/
-table {
-  width: 100%;
-  border-collapse: collapse;   /* junta as bordas das celulas em uma só */
-}
-
-th, td {
-  padding: .85rem .9rem;       /* espaçamento interno */
-  border: 1px solid var(--line);
-  text-align: left;
-}
-
-thead th {
-  background: var(--indigo-900);
-  color: var(--white);
-}
-
-tbody td:first-child {         /* coluna dos horários */
-  background: var(--lavender-100);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-td[colspan] {                  /* linha do intervalo */
-  background: var(--lavender-100);
-  text-align: center;
-  font-weight: 600;
-}
-=======
 .requisitos li.ok { color: green; }*/
->>>>>>> 906da3889bced7df12db12762e696a946641423f
