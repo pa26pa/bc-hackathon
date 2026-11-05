@@ -13,34 +13,41 @@
 <body> 
     <!--TELA LOGIN-->
     <div id="login-div" class="div-principal">
-        <div class="login-box">
+        <div class="login-box" id="login-box">
             <h1>Login</h1>
             <form action="#" method="post" id="login-form" class="login-form">
+              <label for="email">Email:</label>
+              <input type="email" id="email" name="email" required autocomplete="email">
+              <p class="erro" id="email-erro"></p>
 
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required autocomplete="email">
-                <p class="erro" id="email-erro"></p>
+              <label for="senha">Senha:</label>
+              <input type="password" id="senha" name="senha" required autocomplete="current-password">
 
-                <label for="senha">Senha:</label>
-                <input type="password" id="senha" name="senha" required autocomplete="current-password">
+              <ul id="requisitos" class="requisitos">
+                  <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
+                  <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
+                  <li data-req="numero"><span class="icone">✗</span> Um número</li>
+                  <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
+              </ul>
 
-                <ul id="requisitos" class="requisitos">
-                    <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
-                    <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
-                    <li data-req="numero"><span class="icone">✗</span> Um número</li>
-                    <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
-                </ul>
+              <p class="erro" id="senha-erro"></p>
 
-                <p class="erro" id="senha-erro"></p>
+              <a href="#esqueci-box" id="esqueci-a-senha" class="esqueci-a-senha">Esqueci a senha</a>
 
-                <a href="#" id="esqueci-a-senha" class="esqueci-a-senha">Esqueci a senha</a>
-
-                <button type="submit" id="btn-login">Login</button>
+              <button type="submit" class="btn-login" id="btn-login">Login</button>
             </form>
+        </div>
+        <div class="login-box" id="esqueci-box" style="display: none;">
+          <h1>Coloque seu Email</h1>
+          <form action="#" method="post" id="esqueci-form" class="login-form">
+            <label for="email">Email:</label>
+            <input type="email" id="esqueci-email" name="email" required>
+            <p class="erro" id="email-erro"></p>
+            <button type="submit" class="btn-login" id="btn-esqueci">Continuar</button>
+          </form>
         </div>
     </div>
 
-<<<<<<< HEAD
     <!--TELA DO SITE, Guilherme e Leite só mexer nessa parte!!!-->
     <div id="home-div" class="div-principal">
         <head>
@@ -124,16 +131,8 @@
 
     </div>
 
-    <!-- Oie, ignora esse botão, só fiz para testar e ter uma ideia de coo vai funcionar-->
-    <button id="teste"> aperta </button>
-=======
     <!--TELA DO SITE-->
-<<<<<<< HEAD
-    <div id="home-div" class="div-principal">DEU CERTO LETAAAA</div>
-=======
     <div id="home-div" class="div-principal">oii</div>
->>>>>>> 906da3889bced7df12db12762e696a946641423f
->>>>>>> e22d8486783ce2e34158013ce2b1651140a45736
     <script type="module" src="/script.js"></script>
 </body>
 </html>

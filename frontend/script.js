@@ -154,37 +154,13 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     verificar_token();
+
+    const esqueciLink = document.getElementById('esqueci-a-senha');
+    const loginBox = document.getElementById('login-box');
+    const esquecibox = document.getElementById('esqueci-box');
+    
+    esqueciLink.addEventListener('click', () =>{
+        loginBox.style.display = 'none';
+        esquecibox.style.display = 'flex';
+    });
 });
-
-// OI LARI, mano ignora esse código, fiz para termos uma ideia de como chamar a API
-// const button = document.getElementById('teste')
-
-// button.addEventListener("click", async() => {
-//     const novoUsuario = {
-//         email: 'teste@gmail.com',
-//         senha: '123456'
-//     };
-//     try {
-//         const resposta = await fetch('http://localhost:3000/api/teste_email', {
-//             method: 'POST',
-
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             },
-//             body: JSON.stringify(novoUsuario)
-//         });
-
-//         const resultado = await resposta.json();
-
-//         if (resposta.ok) {
-//             console.log('Login realizado com sucesso:', resultado);
-//         } else {
-//             console.log('Erro:', resultado.mensagem);         
-//         }
-
-//     } catch (error) {
-//         console.error('Erro ao conectar com o servidor:', error);
-//     }
-
-//     alert("Button was clicked!");
-// });

@@ -106,7 +106,7 @@ body {
     margin-bottom: 5px;
 }
 .esqueci-a-senha:hover {text-decoration: underline;}
-#btn-login {
+.btn-login {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -120,7 +120,7 @@ body {
     transition: all 0.3s ease-in-out;
     font-size: 1.2em;
 }
-#btn-login:hover {
+.btn-login:hover {
     background-color: #1F1250;
     color: #F1ECFD;
     cursor: pointer;
