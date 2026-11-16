@@ -13,45 +13,69 @@
 <body> 
     <!--TELA LOGIN-->
     <div id="login-div" class="div-principal">
-        <div class="login-box" id="login-box">
-            <h1>Login</h1>
-            <form action="#" method="post" id="login-form" class="login-form">
-              <label for="email">Email:</label>
-              <input type="email" id="email" name="email" required autocomplete="email">
-              <p class="erro" id="email-erro"></p>
+      <div class="login-box" id="login-box">
+        <h1>Login</h1>
+        <form action="#" method="post" id="login-form" class="login-form">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" required autocomplete="email">
+          <p class="erro" id="email-erro"></p>
 
-              <label for="senha">Senha:</label>
-              <input type="password" id="senha" name="senha" required autocomplete="current-password">
+          <label for="senha">Senha:</label>
+          <input type="password" id="senha" name="senha" required autocomplete="current-password">
 
-              <ul id="requisitos" class="requisitos">
-                  <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
-                  <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
-                  <li data-req="numero"><span class="icone">✗</span> Um número</li>
-                  <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
-              </ul>
+          <ul id="requisitos" class="requisitos">
+            <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
+            <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
+            <li data-req="numero"><span class="icone">✗</span> Um número</li>
+            <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
+          </ul>
 
-              <p class="erro" id="senha-erro"></p>
+          <p class="erro" id="senha-erro"></p>
 
-              <a href="#esqueci-box" id="esqueci-a-senha" class="esqueci-a-senha">Esqueci a senha</a>
+          <a href="#esqueci-box" id="esqueci-a-senha" class="esqueci-a-senha">Esqueci a senha</a>
 
-              <button type="submit" class="btn-login" id="btn-login">Login</button>
-            </form>
+          <button type="submit" class="btn-login" id="btn-login">Login</button>
+        </form>
+      </div>
+
+      <div class="login-box" id="esqueci-box" style="display: none;">
+        <div class="back-modal">
+          <i class="fa-solid fa-circle-arrow-left back-arrow-modal"></i>
         </div>
-        <div class="login-box" id="esqueci-box" style="display: none;">
-          <h1>Coloque seu Email</h1>
-          <form action="#" method="post" id="esqueci-form" class="login-form">
-            <label for="email">Email:</label>
-            <input type="email" id="esqueci-email" name="email" required>
-            <p class="erro" id="email-erro"></p>
-            <button type="submit" class="btn-login" id="btn-esqueci">Continuar</button>
-          </form>
-        </div>
+        <h1>Coloque seu Email</h1>
+        <form action="#" method="post" id="esqueci-form" class="login-form">
+          <label for="email">Email:</label>
+          <input type="email" id="esqueci-email" name="email" required><br>
+          <p class="erro" id="email-erro"></p>
+          <button type="submit" class="btn-login" id="btn-esqueci">Continuar</button>
+        </form>
+      </div>
+
+      <div class="login-box" id="inserir-codigo-box" style="display: none;">
+        <form action="#" method="post" id="inserir-codigo-form" class="login-form">
+            <div class="back-modal">
+              <i class="fa-solid fa-circle-arrow-left back-arrow-modal"></i>
+            </div>
+            <h2 data-i18n>Insira o Código</h2> <br>
+            <p data-i18n>Por favor, insira o código enviado para o seu email.</p> <br><br><br>
+            <div class="otp-container">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+                <input type="text" maxlength="1" class="otp-input">
+            </div> <br><br><br>
+            <p id="timerText" data-i18n>Reenviar código em 60s</p>
+            <button id="resendBtn" class="btn-login" disabled data-i18n>Reenviar Código</button>
+            <button type="submit" class="btn-login" id="btn-codigo" data-i18n>Continuar</button>
+        </form>
     </div>
+  </div>
 
-    <!--TELA DO SITE, Guilherme e Leite só mexer nessa parte!!!-->
-    <div id="home-div" class="div-principal">
-        <head>
-        </head>
+  <!--TELA DO SITE, Guilherme e Leite só mexer nessa parte!!!-->
+  <div id="home-div" class="div-principal">
+      <head>
+      </head>
 
         <!-- Fiz aqui a tabela de horarios de aula e tals, não sei se ta funcionando
          mas vou estudar como integrar com css e jaja termino aq-->

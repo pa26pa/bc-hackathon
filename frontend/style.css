@@ -32,7 +32,6 @@ body {
     display: flex;
     width: 100%;
     height: 100%;
-    border: 4px solid red;
     justify-content: center;
     align-items: center;
 }
@@ -43,6 +42,7 @@ body {
     font-size: 4em;
 }
 .login-box {
+    position: relative;
     display: flex;
     flex-direction: column;
     background-color: #F1ECFD;
@@ -57,6 +57,7 @@ body {
     align-items: center;
 }
 .login-box h1 {font-size: 2.5em;}
+#esqueci-box h1 {font-size: 2em;}
 .login-form {
     display: flex;
     flex-direction: column;
@@ -64,6 +65,7 @@ body {
     height: 100%;
     text-align: left;
     margin-top: 10px;
+    border: 3px solid green;
 }
 .login-form label {
     font-size: 1em;
@@ -86,7 +88,6 @@ body {
 .erro { 
     color: red; 
     font-size: 0.7em; 
-    border: 1px solid red; 
     text-align: center;
 }
 .erro:empty { display: none; }
@@ -124,6 +125,86 @@ body {
     background-color: #1F1250;
     color: #F1ECFD;
     cursor: pointer;
+}
+
+.back-modal {
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    display: flex;
+    width: max-content;
+    height: auto;
+    border: 4px solid red;
+}
+.back-modal .back-arrow-modal {
+    background-color: transparent;
+    border: none;
+    font-size: 2.3em;
+    cursor: pointer;
+}
+
+card de inserir o código*/
+.otp-container {
+    display: flex;
+    align-items: center;
+    margin: 20px auto;
+    gap: 10px;
+    justify-content: center;
+    border: none;
+}
+.otp-input {
+    width: 50px;
+    height: 60px;
+    font-size: 1.5em;
+    text-align: center;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    transition: 0.2s;
+}
+.otp-input:focus {
+    border-color: var(--color3);
+    box-shadow: 0px 5px 5px rgba(145, 71, 255, 0.5);
+}
+#resendBtn:disabled, #receber-codigo:disabled, #continueBtn:disabled, #backLogin:disabled {
+    cursor: not-allowed;
+    opacity: 0.6; /* opcional, reforça o visual de desabilitado */
+}
+
+/*AJUSTE DO BUG DE QUANDO COLA NO INPUT (autofill)*/
+/*remove fundo branco*/
+input::selection { /*:: = pseudo-elemento (parte interna)*/
+    background: transparent;
+    color: inherit;
+}
+/*Firefox*/
+input::-moz-selection { /*usa-se -moz- para firefox*/
+    background: transparent;
+    color: inherit;
+}
+/*remove destaque padrão de foco*/
+input:focus { /*: = pseudo-classe(estado)*/
+    outline: none;
+    box-shadow: none;
+}
+/*Chrome, Edge, Safari (AUTOFILL)*/
+/* modo claro (mantém o que já tinha) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+    -webkit-text-fill-color: var(--color8) !important;
+    transition: background-color 9999s ease-in-out 0s;
+}
+
+/* modo escuro — força texto branco no autofill */
+[data-tema="escuro"] input:-webkit-autofill,
+[data-tema="escuro"] input:-webkit-autofill:hover,
+[data-tema="escuro"] input:-webkit-autofill:focus,
+[data-tema="escuro"] textarea:-webkit-autofill {
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff;
 }
 
 /*
