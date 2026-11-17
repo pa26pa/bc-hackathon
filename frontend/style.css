@@ -41,6 +41,8 @@ body {
     background-color: #8797f47e;
     color: #F1ECFD;
     font-size: 4em;
+    height: 100%;
+    width: 100%;
 }
 .login-box {
     position: relative;
@@ -214,12 +216,12 @@ header {
     position: fixed;
     top: 0;
     width: 100vw;
-    height: 100px;
+    height: 10%;
     background-color: #DCE8F8;
     justify-content: space-between;
     padding: 3% 5%;
     align-items: center;
-    border-bottom: 10px solid #1F1250;
+    border-bottom: 5px solid #1F1250;
     box-shadow: 0 0 5px 10px #1F1250;
 }
 header img {
