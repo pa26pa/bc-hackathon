@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
     
     async function verificar_token() {
         try {
@@ -119,6 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         btnLogin.disabled = true; // evita cliques duplicados
 
+    
         try {
             console.log('yey')
             const resposta = await fetch('/api/login', {
@@ -135,6 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const dados = await resposta.json();
 
             if (resposta.ok) {
+                  
                 telaLogin.style.display = 'none';
                 telaSite.style.display = 'flex';
                 localStorage.setItem('token', dados.token);
@@ -151,9 +153,9 @@ document.addEventListener("DOMContentLoaded", function() {
             senhaErro.textContent = 'Erro de conexão com o servidor.';
             btnLogin.disabled = false;
         }
+            
     });
 
-    verificar_token();
 
     //troca do modal login para colocar email
     const esqueciLink = document.getElementById('esqueci-a-senha');
@@ -254,4 +256,13 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(r => r.json()).then(data => mostrarToast(data.mensagem, data.status));
         });
     }
+
+    let respostinha = await verificar_token()
+    
+    if (respostinha && respostinha.email) {
+        console.log('AQUI');
+        telaLogin.style.display = 'none';
+        telaSite.style.display = 'flex';        
+    }
 });
+
