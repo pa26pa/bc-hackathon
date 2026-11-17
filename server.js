@@ -5,6 +5,7 @@ import authRoutes from './backend/endpoints/auth.js';
 import connection from './backend/database/connection.js';
 import path from 'path';//trabalha com caminhos de arquivos e diretórios (módulo nativo do node.js)
 import { fileURLToPath } from 'url';//acha o path respectivo do arquivo
+import cookieParser from 'cookie-parser';
 
 //CONFIGURAÇÃO INICIAL
 dotenv.config();//carrega as variáveis de ambiente do arquivo .env para o objeto process.env
@@ -13,7 +14,9 @@ dotenv.config();//carrega as variáveis de ambiente do arquivo .env para o objet
 sem chegar na rota. Ex: autenticação, log, tratamento de erros, etc.*/
 const app = express();//cria aplicação Express que registra middlewares, rotas e, no final, inicia o servidor.
 
-app.use(express.json());//middleware que converte o corpo da requisição em JSON, permitindo acessar os dados via req.body
+app.use(cookieParser());
+app.use(express.json());
+//middleware que converte o corpo da requisição em JSON, permitindo acessar os dados via req.body
 
 app.use('/api', authRoutes);//middleware que define a rota base para os endpoints de autenticação, prefixando com /api
 
