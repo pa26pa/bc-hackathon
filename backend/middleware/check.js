@@ -2,20 +2,22 @@
 import jwt from 'jsonwebtoken';
 
 function verificarToken(req, res, next) {
-    const autorizacao = req.headers.authorization;
 
-    if (!autorizacao) {
-        return res.status(401).json({
-            mensagem: 'Token não informado!'
-        });
+    // Primeiro tenta encontrar o token nos cookies
+    let tokenLimpo = req.cookies?.token;
+
+    // Mantém compatibilidade com requisições que usam Bearer
+    if (!tokenLimpo) {
+        const autorizacao = req.headers.authorization;
+
+        if (autorizacao && autorizacao.startsWith('Bearer ')) {
+            tokenLimpo = autorizacao.split(' ')[1];
+        }
     }
-
-    // Separa a palavra Bearer do token
-    const tokenLimpo = autorizacao.split(' ')[1];
 
     if (!tokenLimpo) {
         return res.status(401).json({
-            mensagem: 'Formato de token inválido!'
+            mensagem: 'Token não informado!'
         });
     }
 
