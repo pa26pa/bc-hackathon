@@ -51,20 +51,20 @@
         </form>
       </div>
 
-      <div class="login-box" id="inserir-codigo-box" style="display: none;">
+      <div class="login-box codigo-box" id="inserir-codigo-box" style="display: none;">
         <form action="#" method="post" id="inserir-codigo-form" class="login-form">
             <div class="back-modal">
               <i class="fa-solid fa-circle-arrow-left back-arrow-modal"></i>
             </div>
-            <h2 data-i18n>Insira o Código</h2> <br>
-            <p data-i18n>Por favor, insira o código enviado para o seu email.</p> <br><br><br>
+            <h1 data-i18n>Insira o Código</h1>
+            <p data-i18n>Por favor, insira o código enviado para o seu email.</p> <br><br>
             <div class="otp-container">
                 <input type="text" maxlength="1" class="otp-input">
                 <input type="text" maxlength="1" class="otp-input">
                 <input type="text" maxlength="1" class="otp-input">
                 <input type="text" maxlength="1" class="otp-input">
                 <input type="text" maxlength="1" class="otp-input">
-            </div> <br><br><br>
+            </div> <br><br>
             <p id="timerText" data-i18n>Reenviar código em 60s</p>
             <button id="resendBtn" class="btn-login" disabled data-i18n>Reenviar Código</button>
             <button type="submit" class="btn-login" id="btn-codigo" data-i18n>Continuar</button>
@@ -72,89 +72,153 @@
     </div>
   </div>
 
-    <!--TELA DO SITE, Guilherme e Leite só mexer nessa parte!!!-->
+    <!--TELA DO SITE!-->
     <div id="home-div" class="div-principal">
-        <head>
-        </head>
-        <div class="div-legal">
-          <p>Os horários das suas aulas, em um só lugar.</p>
+        <header>
+          <img src="logo.png" alt="logo">
+          <button class="menu-dropdown" id="menu-dropdown"><i class="fa-solid fa-bars menu-icon"></i></button>
+        </header>
+
+        <div class="busca-box">
+          <div class="secao-busca">
+            <label for="escolher-turma">Turma</label>
+            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
+            <datalist id="lista-turma">
+              <option value="1º ano - Manhã (1DA)">1DA</option>
+              <option value=" (2DA)">2º ano - Manhã</option>
+              <option value="3º ano - Manhã (3DA)">
+              <option value="1º ano - Tarde (1DB)">
+              <option value="2º ano - Tarde (2DB)">
+              <option value="3º ano - Tarde (3DB)">
+            </datalist>
+          </div>
+          <div class="secao-busca">
+            <label for="escolher-turma">Turma</label>
+            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
+            <datalist id="lista-turma">
+              <option value="1º ano - Manhã (1DA)">1DA</option>
+              <option value=" (2DA)">2º ano - Manhã</option>
+              <option value="3º ano - Manhã (3DA)">
+              <option value="1º ano - Tarde (1DB)">
+              <option value="2º ano - Tarde (2DB)">
+              <option value="3º ano - Tarde (3DB)">
+            </datalist>
+          </div>
+          <div class="secao-busca">
+            <label for="escolher-turma">Turma</label>
+            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
+            <datalist id="lista-turma">
+              <option value="1º ano - Manhã (1DA)">1DA</option>
+              <option value=" (2DA)">2º ano - Manhã</option>
+              <option value="3º ano - Manhã (3DA)">
+              <option value="1º ano - Tarde (1DB)">
+              <option value="2º ano - Tarde (2DB)">
+              <option value="3º ano - Tarde (3DB)">
+            </datalist>
+          </div>
+          <div class="secao-busca">
+            <label for="escolher-turma">Turma</label>
+            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
+            <datalist id="lista-turma">
+              <option value="1º ano - Manhã (1DA)">1DA</option>
+              <option value=" (2DA)">2º ano - Manhã</option>
+              <option value="3º ano - Manhã (3DA)">
+              <option value="1º ano - Tarde (1DB)">
+              <option value="2º ano - Tarde (2DB)">
+              <option value="3º ano - Tarde (3DB)">
+            </datalist>
+          </div>
+          <div class="secao-busca">
+            <label for="escolher-turma">Turma</label>
+            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
+            <datalist id="lista-turma">
+              <option value="1º ano - Manhã (1DA)">1DA</option>
+              <option value=" (2DA)">2º ano - Manhã</option>
+              <option value="3º ano - Manhã (3DA)">
+              <option value="1º ano - Tarde (1DB)">
+              <option value="2º ano - Tarde (2DB)">
+              <option value="3º ano - Tarde (3DB)">
+            </datalist>
+          </div>
+          <div class="secao-busca">
+            <button class="btn-limpar" id="btn-limpar">Limpar</button>
+            <button class="btn-consultar" id="btn-consultar">Consultar</button>
+          </div>
         </div>
 
-        <!-- Fiz aqui a tabela de horarios de aula e tals, não sei se ta funcionando
-         mas vou estudar como integrar com css e jaja termino aq-->
-<table id="grade" class="grade"> <!-- grade de grade de aulas, com os horários e as disciplinas-->
+        <table id="grade" class="grade"> <!-- grade de grade de aulas, com os horários e as disciplinas-->
 
-  <caption>
-    Grade semana - Turma selecionada: nome da turma
-  </caption>
+          <caption>
+            Grade semana - Turma selecionada: nome da turma
+          </caption>
 
-  <thead>
-    <tr>
-      <th>Horário</th>
-      <th>Segunda</th>
-      <th>Terça</th>
-      <th>Quarta</th>
-      <th>Quinta</th>
-      <th>Sexta</th>
-    </tr>
-  </thead>
-  
-  <tbody>
-    <tr>
-      <td>07:00 - 07:50</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-    </tr>
-    <tr>
-      <td>07:50 - 08:40</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-    </tr>
-    <tr>
-      <td>08:40 - 09:30</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-    </tr>
-    <tr>
-      <td>09:30 - 09:45</td>
-      <td colspan="5">Intervalo</td>
-    </tr>
-    <tr>
-      <td>09:45 - 10:35</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-    </tr>
-    <tr>
-      <td>10:35 - 11:25</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-    </tr>
-    <tr>
-      <td>11:25 - 12:15</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-      <td>Disciplina</td>
-    </tr>
-  </tbody>
-  
-</table>
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>Segunda</th>
+              <th>Terça</th>
+              <th>Quarta</th>
+              <th>Quinta</th>
+              <th>Sexta</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            <tr>
+              <td>07:00 - 07:50</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+            </tr>
+            <tr>
+              <td>07:50 - 08:40</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+            </tr>
+            <tr>
+              <td>08:40 - 09:30</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+            </tr>
+            <tr>
+              <td>09:30 - 09:45</td>
+              <td colspan="5">Intervalo</td>
+            </tr>
+            <tr>
+              <td>09:45 - 10:35</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+            </tr>
+            <tr>
+              <td>10:35 - 11:25</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+            </tr>
+            <tr>
+              <td>11:25 - 12:15</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+              <td>Disciplina</td>
+            </tr>
+          </tbody>
+          
+        </table>
 
     </div>
 
