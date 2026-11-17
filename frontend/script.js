@@ -264,5 +264,22 @@ document.addEventListener("DOMContentLoaded", async function() {
         telaLogin.style.display = 'none';
         telaSite.style.display = 'flex';        
     }
+
+    //MENU DROPDOWN
+    const btnMenu = document.getElementById("btnMenu");
+    const meuDropdown = document.getElementById("meuDropdown");
+
+    // Abre ou fecha o menu ao clicar no botão
+    btnMenu.addEventListener("click", function(event) {
+        event.stopPropagation(); // Impede que o clique feche o menu imediatamente
+        meuDropdown.classList.toggle("mostrar");
+    });
+
+    // Fecha o menu se clicar em qualquer outro lugar da tela
+    window.addEventListener("click", function() {
+        if (meuDropdown.classList.contains("mostrar")) {
+        meuDropdown.classList.remove("mostrar");
+        }
+    });
 });
 
