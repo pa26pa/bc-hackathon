@@ -316,19 +316,20 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 
     //MENU DROPDOWN
-    const btnMenu = document.getElementById("btnMenu");
-    const meuDropdown = document.getElementById("meuDropdown");
+    const btnDropdown = document.getElementById('menu-dropdown');
+    const dropdownMenu = document.getElementById('dropdown-menu');
 
-    // Abre ou fecha o menu ao clicar no botão
-    btnMenu.addEventListener("click", function(event) {
-        event.stopPropagation(); // Impede que o clique feche o menu imediatamente
-        meuDropdown.classList.toggle("mostrar");
-    });
+    if (btnDropdown && dropdownMenu) {
+        btnDropdown.addEventListener('click', (e) => {
+            e.stopPropagation(); //evita que o clique feche o menu imediatamente
+            dropdownMenu.classList.toggle('show');
+        });
 
-    // Fecha o menu se clicar em qualquer outro lugar da tela
-    window.addEventListener("click", function() {
-        if (meuDropdown.classList.contains("mostrar")) {
-        meuDropdown.classList.remove("mostrar");
-        }
-    });
+        //fecha ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!dropdownMenu.contains(e.target) && e.target !== btnDropdown) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+    }
 });

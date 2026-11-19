@@ -76,14 +76,30 @@
     <div id="home-div" class="div-principal">
         <header>
           <img src="logo.png" alt="logo">
-          <div class="dropdown-menu">
-            <button class="menu-dropdown dropdown-btn" id="menu-dropdown btnMenu"><i class="fa-solid fa-bars menu-icon"></i></button>
-            <div class="dropdown-conteudo" id="meuDropdown">
-              <a href="#">Início</a>
-              <a href="#">Horários</a>
-              <a href="#">Turmas</a>
-              <a href="#">Sair</a>
-            </div>
+          <div class="dropdown-menu-wrap">
+            <button class="menu-dropdown dropdown-btn" id="menu-dropdown"><i class="fa-solid fa-bars menu-icon"></i></button>
+            
+            <div id="dropdown-menu" class="dropdown-menu">
+                  <ul>
+                      <li><span>Tamanho da Letra</span></li>
+                      <hr>
+                      <li class="toggle-item adjust-slider">
+                          <span>Tema Escuro</span>
+                          <label class="switch">
+                              <input type="checkbox" id="dark-theme" class="btn-tema">
+                              <span class="slider"></span>
+                          </label>
+                      </li>
+                      <hr>
+                      <li>
+                        <span>Histórico</span>
+                      </li>  
+                      <hr>   
+                      <li><span>Segurança</span></li>
+                      <hr>               
+                      <li id="btn-logout">Sair</li>
+                  </ul>
+              </div>
           </div>
           
         </header>
@@ -93,8 +109,8 @@
             <label for="escolher-turma">Turma</label>
             <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
             <datalist id="lista-turma">
-              <option value="1º ano - Manhã (1DA)">1DA</option>
-              <option value=" (2DA)">2º ano - Manhã</option>
+              <option value="1º ano - Manhã (1DA)">
+              <option value="2º ano - Manhã (2DA)">
               <option value="3º ano - Manhã (3DA)">
               <option value="1º ano - Tarde (1DB)">
               <option value="2º ano - Tarde (2DB)">
