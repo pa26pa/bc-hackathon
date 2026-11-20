@@ -43,6 +43,7 @@ body {
     font-size: 4em;
     height: 100vh;
     width: 100%;
+    padding-top: 250vh;
 }
 .login-box {
     position: relative;
@@ -223,6 +224,7 @@ header {
     align-items: center;
     box-shadow: 0 6px 10px -5px rgba(31, 18, 80, 0.5);
 }
+
 header img {
     width: 80px;
     height: 80px;
@@ -273,6 +275,18 @@ header button:hover {
     justify-content: center;
     align-items: center;
 }
+
+.select-grupo .secao-busca-grupo {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    display: flex;
+}
+
+.select-grupo select{
+    border-radius: 30px;
+}
+
 .secao-busca label {font-size: 1em; font-weight: bold;}
 .secao-busca input {
     width: 180px;
