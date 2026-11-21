@@ -332,4 +332,23 @@ document.addEventListener("DOMContentLoaded", async function() {
             }
         });
     }
+
+    //MODO ESCURO
+    const btnTema = document.querySelectorAll('.btn-tema');
+    if (btnTema) {
+        // aplica tema salvo ao carregar
+        const temaSalvo = localStorage.getItem('witch-tema') || 'claro';
+        document.documentElement.setAttribute('data-tema', temaSalvo === 'escuro' ? 'escuro' : '');
+        btnTema.forEach((btn) => {
+            btn.checked = temaSalvo === 'escuro';
+        });
+
+        btnTema.forEach((btn) => {
+            btn.addEventListener('change', () => {
+                const escuro = btn.checked;
+                document.documentElement.setAttribute('data-tema', escuro ? 'escuro' : '');
+                localStorage.setItem('witch-tema', escuro ? 'escuro' : 'claro');
+            });
+        });
+    }
 });

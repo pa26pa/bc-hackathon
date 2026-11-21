@@ -1,18 +1,19 @@
-/* aqui em baixo é style, feito pelo guilherme gostoso coloquei em cima pq não tava lendo*/
-style:root {
-    --indigo-900: #1f1250;   /* roxo escuro do "B" e do texto */
-    --indigo-700: #2f1c75;
-    --violet-500: #8a52f0;   /* violeta do "C" e da estrela */
-    --violet-300: #bfa2fa;
-    --lavender-100: #f1ecfd;
-    --lavender-50: #f8f6fe;
-    --white: #ffffff;
-    --ink-soft: #5b5278;
-    --line: #e2d9f7;
-    --radius-lg: 20px;
-    --radius-sm: 10px;
-    --font: "Sora", "Segoe UI", system-ui, -apple-system, sans-serif;
-  }
+:root {
+    --color1: #FFFFFF;
+    --color2: #DCE8F8;
+    --color3: #1F1250;
+    --color5: #F1ECFD;
+    --color6: #174EA6;
+    --color7: #909FF1;
+}
+[data-tema="escuro"] {
+    --color1: black;
+    --color2: #174EA6;
+    --color3: #8A52F0;
+    --color5: #1F1250;
+    --color6: #F1ECFD;
+    --color7: #1F1250;
+}
 
 /* RESET PADRÃO */
 * {
@@ -20,11 +21,10 @@ style:root {
     padding: 0;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
-    color: #1F1250;
+    color: --var(--color3);
     font-size: 16px;
 }
 body {
-    background-color: #304adb7e;
     height: 100vh;
     display: flex;
 }
@@ -35,10 +35,11 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    background-color: #909FF1;
 }
 #home-div {
     display: none;
-    background-color: #8797f47e;
+    background-color: var(--color7);
     color: #F1ECFD;
     font-size: 4em;
     height: 100vh;
@@ -84,7 +85,7 @@ body {
     width: 100%;
     border-radius: 20px;
     font-size: 0.9em;
-    border: 2px solid #8A52F0;
+    border: 2px solid var(--color3);
     margin: 5px 0 10px 0;
 }
 .login-form input:focus {box-shadow: 0 0 5px 2px #8A52F0;}
@@ -117,7 +118,7 @@ body {
     justify-content: center;
     width: 100%;
     border-radius: 30px;
-    border: 2px solid #1F1250;
+    border: 2px solid var(--color3);
     background-color: #8A52F0;
     height: max-content;
     padding: 5px;
@@ -126,7 +127,7 @@ body {
     font-size: 1.2em;
 }
 .btn-login:hover {
-    background-color: #1F1250;
+    background-color: var(--color3);
     color: #F1ECFD;
     cursor: pointer;
 }
@@ -138,7 +139,6 @@ body {
     display: flex;
     width: max-content;
     height: auto;
-    border: 4px solid red;
 }
 .back-modal .back-arrow-modal {
     background-color: transparent;
@@ -218,7 +218,7 @@ header {
     top: 0;
     width: 100vw;
     height: 10vh;
-    background-color: #DCE8F8;
+    background-color: var(--color2);
     justify-content: space-between;
     padding: 3% 5%;
     align-items: center;
@@ -241,10 +241,11 @@ header button {
     height: max-content;
     transition: all 0.3s ease-in-out;
     cursor: pointer;
+    color: #1F1250;
 }
-header button:hover {
-    background-color: #c5ccf8;
-    border: 2px solid #909FF1;
+header button:hover, header button:focus {
+    background-color: var(--color2);
+    border: 2px solid var(--color7);
     border-radius: 50%;
 }
 .menu-icon {font-size: 2.1em;}
@@ -254,9 +255,9 @@ header button:hover {
     display: grid;
     grid-template-columns: repeat(5, 1fr) 110px;
     gap: 5px;
-    background-color: #DCE8F8;
+    background-color: var(--color2);
     border-radius: 30px;
-    box-shadow: 0 5px 5px -2px #1F1250;
+    box-shadow: 0 5px 5px -2px var(--color3);
     padding: 10px 20px;
     min-width: max-content;
     width: 70vw;
@@ -274,6 +275,7 @@ header button:hover {
     text-align: left;
     justify-content: center;
     align-items: center;
+    color: var(--color6);
 }
 
 .select-grupo .secao-busca-grupo {
@@ -293,14 +295,14 @@ header button:hover {
     height: max-content;
     font-size: 1.1em;
     background-color: white;
-    color: #1F1250;
+    color: var(--color3);
     border: none;
     border-radius: 20px;
     padding: 5px 10px;
     transition: all 0.3s ease;
 }
 .secao-busca input:hover, .secao-busca input:focus {
-    border: 2px solid #174EA6;
+    border: 2px solid var(--color6);
     box-shadow: 0 0 5px 5px #909FF1;
 }
 .secao-busca button {
@@ -310,8 +312,8 @@ header button:hover {
     align-items: center;
     justify-content: center;
     font-size: 1em;
-    background-color: #174EA6;
-    border: 2px solid #174EA6;
+    background-color: var(--color6);
+    border: 2px solid var(--color6);
     color: #DCE8F8;
     border-radius: 15px;
     padding: 5px;
@@ -320,7 +322,7 @@ header button:hover {
 }
 .secao-busca button:hover {
     background-color: #DCE8F8;
-    color: #174EA6;
+    color: var(--color6);
 }
 
 /* Grade de horários */
@@ -332,14 +334,14 @@ border-collapse: separate;
 border-spacing: 4px;
 text-align: center;
 font-family: 'Poppins', sans-serif;
-color: #174ea6;
+color: var(--color6);
 }
 
 .grade caption {
 font-size: 25px;
 font-weight: 600;
 padding: 10px;
-color: #174ea6;
+color: var(--color6);
 text-align: left;
 }
 
@@ -352,23 +354,23 @@ margin-top: 5px;
 }
 
 .grade th {
-background-color: #174ea6;
-color: #ffffff;
+background-color: var(--color6);
+color: var(--color1);
 padding: 15px 10px;
 border-radius: 8px;
 font-size: 16px;
 }
 
 .grade td {
-background-color: #edf3fc;
-color: #174ea6;
+background-color: var(--color2);
+color: var(--color6);
 padding: 15px 10px;
 border-radius: 4px;
 transition: 0.2s;
 }
 
 .grade td:first-child {
-background-color: #dce8f8;
+background-color: var(--color2);
 font-weight: 600;
 white-space: nowrap;
 }
@@ -379,8 +381,8 @@ cursor: pointer;
 }
 
 .grade tr {
-background-color: #dce8f8;
-color: #174ea6;
+background-color: var(--color2);
+color: var(--color6);
 font-weight: 600;
 letter-spacing: 1px;
 }
@@ -395,8 +397,8 @@ letter-spacing: 1px;
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    background: white;
-    border: 1px solid blue;
+    background: var(--color2);
+    border: 1px solid var(--color6);
     border-radius: 8px;
     min-width: 200px;
     z-index: 9999;
@@ -467,7 +469,7 @@ letter-spacing: 1px;
 #btn-logout {
     justify-content: center;
     background: red;
-    color: #fff;
+    color: var(--color1);
 }
 #btn-logout:hover {background: rgb(144, 18, 18);}
 /*
