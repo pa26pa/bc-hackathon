@@ -5,6 +5,12 @@
     --color5: #F1ECFD;
     --color6: #174EA6;
     --color7: #909FF1;
+    --color8: #c5d9f5;
+    --color9: #153974;
+    --color10: #000000;
+    --acao-edicao: #3b82f6; /* azul */
+    --acao-senha:  #ef4444; /* vermelho */
+    --acao-email:  #f59e0b; /* laranja */
 }
 [data-tema="escuro"] {
     --color1: black;
@@ -13,6 +19,9 @@
     --color5: #1F1250;
     --color6: #F1ECFD;
     --color7: #1F1250;
+    --color8: #909FF1;
+    --color9: #592ef4;
+    --color10: #F1ECFD;
 }
 
 /* RESET PADRÃO */
@@ -207,8 +216,8 @@ textarea:-webkit-autofill {
 [data-tema="escuro"] input:-webkit-autofill:hover,
 [data-tema="escuro"] input:-webkit-autofill:focus,
 [data-tema="escuro"] textarea:-webkit-autofill {
-    -webkit-text-fill-color: #ffffff !important;
-    caret-color: #ffffff;
+    -webkit-text-fill-color: #000000 !important;
+    caret-color: #000000;
 }
 
 /*página inicial do site*/
@@ -312,8 +321,8 @@ header button:hover, header button:focus {
     align-items: center;
     justify-content: center;
     font-size: 1em;
-    background-color: var(--color6);
-    border: 2px solid var(--color6);
+    background-color: var(--color9);
+    border: 2px solid var(--color9);
     color: #DCE8F8;
     border-radius: 15px;
     padding: 5px;
@@ -321,7 +330,7 @@ header button:hover, header button:focus {
     transition: all 0.3s ease-in-out;
 }
 .secao-busca button:hover {
-    background-color: #DCE8F8;
+    background-color: var(--color2);
     color: var(--color6);
 }
 
@@ -354,7 +363,7 @@ margin-top: 5px;
 }
 
 .grade th {
-background-color: var(--color6);
+background-color: var(--color9);
 color: var(--color1);
 padding: 15px 10px;
 border-radius: 8px;
@@ -376,7 +385,7 @@ white-space: nowrap;
 }
 
 .grade tbody td:not(:first-child):hover {
-background-color: #c5d9f5;
+background-color: var(--color8);
 cursor: pointer;
 }
 
@@ -425,13 +434,13 @@ letter-spacing: 1px;
     align-items: center;
     padding: 8px 15px;
     cursor: pointer;
-    color: black;
+    color: var(--color10);
     font-size: 1.4em;
     transition: background 0.2s;
 }
 .dropdown-menu li:hover {
-    background: rgb(132, 126, 126);
-    color: rgb(255, 255, 255);
+    background: var(--color8);
+    color: var(--color10);
 }
 .dropdown-menu hr {
     border-color: blueviolet;
@@ -447,15 +456,16 @@ letter-spacing: 1px;
 .slider {
     position: absolute;
     inset: 0;
-    background: blue;
+    background: var(--color8);
     border-radius: 22px;
     cursor: pointer;
     transition: background 0.2s;
+    border: 2px solid var(--color3);
 }
 .slider:before {
     content: "";
     position: absolute;
-    top: 3px;
+    top: 1.5px;
     left: 3px;
     width: 16px;
     height: 16px;
@@ -464,115 +474,134 @@ letter-spacing: 1px;
     transition: transform 0.2s;
 }
 .switch input:checked + .slider {background: blue;}
-.switch input:checked + .slider::before {transform: translateX(28px); background: burlywood;}
+.switch input:checked + .slider::before {transform: translateX(28px); background: #C5D9F5;}
 
 #btn-logout {
     justify-content: center;
     background: red;
-    color: var(--color1);
-}
-#btn-logout:hover {background: rgb(144, 18, 18);}
-/*
-body {
-    width: 100%;
-    min-height: 100vh;
-}
-#login-div {
-    background-color: rgb(241, 180, 249);
-}
-/* ESCONDER TELA HOME 
-#home-div {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* display: none; 
-}*/
-/* DIV DO LOGIN *//*
-.div-principal {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 4px solid red;
-}
-#home-div {background-color: rgb(40, 5, 45);}
-
-/* CAIXA DE LOGIN *//*
-.login-box {
-    display: none;
-    background-color: white;
-    padding: 20px;
-    border-radius: 20px;
-    min-width: 300px;
-}
-.login-box h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-/* FORMULÁRIO *//*
-.login-form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    border: 2px solid rgba(129, 12, 142, 0.373);
-}
-.login-form label {
-    margin-bottom: 5px;
-    color: rgb(129, 12, 142);
-}
-/* INPUTS *//*
-input {
-    border-radius: 20px;
-    padding: 10px;
-    outline: none;
-    border: 2px solid rgba(129, 12, 142, 0.373);
-    transition: 0.2s ease;
-}
-
-input:hover,
-input:focus {
-    border: 2px solid rgba(55, 3, 44, 0.688);
-}
-
-/* BOTÕES *//*
-button {
-    transition: 0.2s ease;
-    padding: 10px;
-    border: none;
+    color: white;
     border-radius: 8px;
-    cursor: pointer;
-    color: rgb(248, 247, 249);
-    background-color: rgb(98, 29, 152);
+}
+#btn-logout:hover {background: rgb(206, 25, 25);}
+
+/*MODAL DO HISTÓRICO*/
+.modal-historico {
+    border: none;
+    border-radius: 30px;
+    padding: 30px;
+    width: min(650px, 92vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: auto;
+    background-color: var(--color5);
+    color: var(--color10);
+    box-shadow: 0 8px 15px -4px rgba(31, 18, 80, 0.4);
+}
+.modal-historico::backdrop { background: rgba(0, 0, 0, .5); }
+
+.modal-historico h1 {
+    font-size: 2em;
+    text-align: center;
+    color: var(--color3);
+}
+
+/* legenda */
+.historico-legenda {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 16px;
+    list-style: none;
+    margin: 15px 0;
+}
+.historico-legenda li,
+.historico-legenda span {
+    font-size: 0.85em;
+    color: var(--color10);
+}
+.badge {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+.badge-edicao { background: var(--acao-edicao); }
+.badge-senha  { background: var(--acao-senha); }
+.badge-email  { background: var(--acao-email); }
+
+/* mensagem de lista vazia */
+#historico-empty {
+    text-align: center;
+    padding: 20px 0;
+    color: var(--color6);
+    font-weight: 600;
+}
+
+/* tabela (mesmo estilo da .grade: linhas separadas e arredondadas) */
+#historico-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 6px;
+}
+#historico-table td {
+    padding: 12px 10px;
+    background-color: var(--color2);
+    color: var(--color6);
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+#historico-table tr:hover td { background-color: var(--color8); }
+
+/* cantos arredondados nas pontas de cada linha */
+#historico-table td:first-child { border-radius: 12px 0 0 12px; border-left: 5px solid transparent; }
+#historico-table td:last-child  { border-radius: 0 12px 12px 0; }
+
+/* barra colorida na lateral da linha */
+#historico-table tr.acao-edicao td:first-child { border-left-color: var(--acao-edicao); }
+#historico-table tr.acao-senha  td:first-child { border-left-color: var(--acao-senha); }
+#historico-table tr.acao-email  td:first-child { border-left-color: var(--acao-email); }
+
+/* data (última coluna) */
+#historico-table td:last-child {
+    text-align: right;
+    white-space: nowrap;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+
+/* etiqueta do tipo */
+.tag-acao {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75em;
     font-weight: bold;
+    color: #fff;
+    white-space: nowrap;
 }
+.tag-acao.edicao { background: var(--acao-edicao); }
+.tag-acao.senha  { background: var(--acao-senha); }
+.tag-acao.email  { background: var(--acao-email); }
 
-button:hover {
-    background-color: rgb(142, 44, 216);
+/* botão fechar (igual ao .btn-login) */
+#fechar-historico {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 15px;
+    padding: 5px;
+    border-radius: 30px;
+    border: 2px solid var(--color3);
+    background-color: #8A52F0;
+    color: #1F1250;
+    font-weight: bold;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
-
-.esqueci-a-senha{
-    font-size: 13px;
-    color:rgb(29, 115, 152)
-}*/
-
-/* BOTÃO DE TESTE *//*
-#teste {
-    position: relative;
-    z-index: 10;
+#fechar-historico:hover {
+    background-color: var(--color3);
+    color: #F1ECFD;
 }
-.erro { color: red; font-size: 14px; margin: 4px 0; }
-.erro:empty { display: none; }
-
-.requisitos {
-  display: none;
-  list-style: none;
-  margin: 6px 0;
-  font-size: 14px;
-}
-.requisitos.visivel { display: block; }
-/*não entendi oq vc quis dizer...
-.requisitos li { color: red; }
-.requisitos li.ok { color: green; }*/

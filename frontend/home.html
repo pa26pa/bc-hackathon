@@ -80,26 +80,46 @@
             <button class="menu-dropdown dropdown-btn" id="menu-dropdown"><i class="fa-solid fa-bars menu-icon"></i></button>
             
             <div id="dropdown-menu" class="dropdown-menu">
-                  <ul>
-                      <li><span>Tamanho da Letra</span></li>
-                      <hr>
-                      <li class="toggle-item adjust-slider">
-                          <span>Tema Escuro</span>
-                          <label class="switch">
-                              <input type="checkbox" id="dark-theme" class="btn-tema">
-                              <span class="slider"></span>
-                          </label>
-                      </li>
-                      <hr>
-                      <li>
-                        <span>Histórico</span>
-                      </li>  
-                      <hr>   
-                      <li><span>Segurança</span></li>
-                      <hr>               
-                      <li id="btn-logout">Sair</li>
-                  </ul>
-              </div>
+              <ul>
+                  <li><span>Tamanho da Letra</span></li>
+                  <hr>
+                  <li class="toggle-item adjust-slider">
+                      <span>Tema Escuro</span>
+                      <label class="switch">
+                          <input type="checkbox" id="dark-theme" class="btn-tema">
+                          <span class="slider"></span>
+                      </label>
+                  </li>
+                  <hr>
+                  <li class="btn-open-modal" data-modal="modal-1">
+                    <span>Histórico</span>
+                  </li>  
+                  <hr>   
+                  <li><span>Segurança</span></li>
+                  <hr>               
+                  <li id="btn-logout">Sair</li>
+              </ul>
+            </div>
+            <dialog class="modal-historico" id="modal-1">
+              <h1 data-i18n>Histórico de Ações no Site</h1>
+
+              <!--legenda das cores-->
+              <ul class="historico-legenda">
+                  <li><span class="badge badge-edicao"></span> <span data-i18n>Edição de tabela</span></li>
+                  <li><span class="badge badge-senha"></span> <span data-i18n>Troca de senha</span></li>
+                  <li><span class="badge badge-email"></span> <span data-i18n>Troca de e-mail</span></li>
+              </ul>
+
+              <!--quando não houver ações (lista vazia)-->
+              <p id="historico-empty" data-i18n>Nenhuma ação registrada ainda</p>
+
+              <!--tabela que será preenchida pelo JS-->
+              <table id="historico-table">
+                  <tbody id="historico-body"></tbody>
+              </table>
+
+              <button id="fechar-historico" data-i18n>Fechar</button>
+          </dialog>
           </div>
           
         </header>
@@ -107,7 +127,7 @@
         <div class="busca-box">
           <div class="secao-busca">
             <label for="escolher-turma">Turma</label>
-            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
+            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas">
             <datalist id="lista-turma">
               <option value="1º ano - Manhã (1DA)">
               <option value="2º ano - Manhã (2DA)">
@@ -118,9 +138,29 @@
             </datalist>
           </div>
           <div class="secao-busca">
-            <label for="escolher-turma">Turma</label>
-            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
-            <datalist id="lista-turma">
+            <label for="escolher-turma">Grupo</label>
+            <input list="lista-grupo" id="escolher-turma" name="escolher-turma" placeholder="Todos">
+            <datalist id="lista-grupo">
+              <option value="Grupo A">
+              <option value="Grupo B">
+            </datalist>
+          </div>
+          <div class="secao-busca">
+            <label for="escolher-turma">Professor</label>
+            <input list="lista-prof" id="escolher-turma" name="escolher-turma" placeholder="Todos">
+            <datalist id="lista-prof">
+              <option value="Aleteia V. M. Souto">
+              <option value="Alícia V. Lima">
+              <option value="Andre S. Maia">
+              <option value="Bruno Cano">
+              <option value="Cassio M. L. de Aquino">
+              <option value="Célide T. da Silva">
+            </datalist>
+          </div>
+          <div class="secao-busca">
+            <label for="escolher-turma">Disciplina</label>
+            <input list="lista-discip" id="escolher-turma" name="escolher-turma" placeholder="Todas">
+            <datalist id="lista-discip">
               <option value="1º ano - Manhã (1DA)">1DA</option>
               <option value=" (2DA)">2º ano - Manhã</option>
               <option value="3º ano - Manhã (3DA)">
@@ -130,35 +170,11 @@
             </datalist>
           </div>
           <div class="secao-busca">
-            <label for="escolher-turma">Turma</label>
-            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
+            <label for="escolher-turma">Sala</label>
+            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas">
             <datalist id="lista-turma">
-              <option value="1º ano - Manhã (1DA)">1DA</option>
-              <option value=" (2DA)">2º ano - Manhã</option>
-              <option value="3º ano - Manhã (3DA)">
-              <option value="1º ano - Tarde (1DB)">
-              <option value="2º ano - Tarde (2DB)">
-              <option value="3º ano - Tarde (3DB)">
-            </datalist>
-          </div>
-          <div class="secao-busca">
-            <label for="escolher-turma">Turma</label>
-            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
-            <datalist id="lista-turma">
-              <option value="1º ano - Manhã (1DA)">1DA</option>
-              <option value=" (2DA)">2º ano - Manhã</option>
-              <option value="3º ano - Manhã (3DA)">
-              <option value="1º ano - Tarde (1DB)">
-              <option value="2º ano - Tarde (2DB)">
-              <option value="3º ano - Tarde (3DB)">
-            </datalist>
-          </div>
-          <div class="secao-busca">
-            <label for="escolher-turma">Turma</label>
-            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas as turmas">
-            <datalist id="lista-turma">
-              <option value="1º ano - Manhã (1DA)">1DA</option>
-              <option value=" (2DA)">2º ano - Manhã</option>
+              <option value="1º ano - Manhã (1DA)">
+              <option value="2º ano - Manhã (2DA)">
               <option value="3º ano - Manhã (3DA)">
               <option value="1º ano - Tarde (1DB)">
               <option value="2º ano - Tarde (2DB)">

@@ -351,4 +351,105 @@ document.addEventListener("DOMContentLoaded", async function() {
             });
         });
     }
+
+    // ABRIR MODAIS
+    const openButtons = document.querySelectorAll('.btn-open-modal');
+    openButtons.forEach(button => { // para cada botão de abrir modal
+        button.addEventListener('click', () => {
+            const modalId = button.getAttribute('data-modal');
+            const modal = document.getElementById(modalId);
+            if (modal) { // ← proteção para evitar erros se o modal não existir
+                modal.showModal(); // método nativo para mostrar modais <dialog>
+                document.body.classList.add('modal-open');// classe para evitar scroll do fundo
+            }
+        });
+    });
+
+    //MODAL DO HISTÓRICO
+    const modalHistorico = document.getElementById('modal-1');
+    const historicoTable = document.getElementById('historico-table');
+    const historicoBody = document.getElementById('historico-body');
+    const historicoEmpty = document.getElementById('historico-empty');
+    const fecharHistorico = document.getElementById('fechar-historico');
+
+    let historico = [];
+
+    //tipos de ação: classe de cor + texto exibido
+    const TIPOS_ACAO = {
+        edicao: { classe: 'edicao', texto: 'Edição de tabela' },
+        senha:  { classe: 'senha',  texto: 'Troca de senha' },
+        email:  { classe: 'email',  texto: 'Troca de e-mail' }
+    };
+
+    if (modalHistorico) {
+
+        //função para montar a tabela do histórico
+        function renderHistorico() {
+            historicoBody.innerHTML = ''; //limpa linhas antigas
+
+            if (historico.length === 0) {
+                historicoEmpty.style.display = 'block';
+                historicoTable.style.display = 'none';
+                return;
+            }
+
+            historicoEmpty.style.display = 'none';
+            historicoTable.style.display = 'table';
+
+            historico.forEach(item => {
+                const tipo = TIPOS_ACAO[item.tipo] || TIPOS_ACAO.edicao;
+
+                const tr = document.createElement('tr');
+                tr.className = 'acao-' + tipo.classe; //cor da linha
+
+                //coluna 1: tipo da ação (etiqueta colorida)
+                const td1 = document.createElement('td');
+                const tag = document.createElement('span');
+                tag.className = 'tag-acao ' + tipo.classe;
+                tag.textContent = tipo.texto;
+                td1.appendChild(tag);
+
+                //coluna 2: descrição
+                const td2 = document.createElement('td');
+                td2.textContent = item.descricao;
+
+                //coluna 3: data
+                const td3 = document.createElement('td');
+                td3.textContent = item.data;
+
+                tr.append(td1, td2, td3);
+                historicoBody.appendChild(tr);
+            });
+        }
+
+        //busca o histórico no servidor
+        async function carregarHistorico() {
+            try {
+                const res = await fetch(base_url + "/historico", {
+                    method: "GET",
+                    headers: { "X-CSRFToken": csrfToken }
+                });
+                const data = await res.json();
+
+                //esperado: [{tipo:'senha', descricao:'Senha redefinida', data:'21/11/2026 14:30'}, ...]
+                historico = data.historico;
+                renderHistorico();
+            } catch {
+                mostrarToast('Erro ao carregar histórico', 'erro');
+            }
+        }
+
+        //abre o modal (use o botão que você já tem com a classe open-modal)
+        function abrirHistorico() {
+            carregarHistorico();
+            modalHistorico.showModal();
+        }
+
+        fecharHistorico.addEventListener('click', () => modalHistorico.close());
+
+        //fecha ao clicar fora do modal
+        modalHistorico.addEventListener('click', e => {
+            if (e.target === modalHistorico) modalHistorico.close();
+        });
+    }
 });
