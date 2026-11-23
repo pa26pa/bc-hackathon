@@ -452,4 +452,44 @@ document.addEventListener("DOMContentLoaded", async function() {
             if (e.target === modalHistorico) modalHistorico.close();
         });
     }
+
+    const btnLogout = document.getElementById('btn-logout');
+
+    if (btnLogout) {
+        btnLogout.addEventListener('click', async () => {
+
+            try {
+                const resposta = await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    console.log(dados.mensagem);
+
+                    // Esconde a tela principal
+                    telaSite.style.display = 'none';
+
+                    // Exibe novamente a tela de login
+                    telaLogin.style.display = 'flex';
+
+                    // Limpa os campos
+                    emailInput.value = '';
+                    senhaInput.value = '';
+
+                    // Habilita novamente o botão
+                    btnLogin.disabled = false;
+
+                } else {
+                    console.log(dados.mensagem);
+                }
+
+            } catch (error) {
+                console.error('Erro ao realizar logout:', error);
+            }
+
+        });
+    }
 });

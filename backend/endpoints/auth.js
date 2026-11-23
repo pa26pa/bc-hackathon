@@ -213,5 +213,26 @@ router.post('/atualizar_email_senha', verificarToken, async (req, res) => {
     }
 });
 
+router.post('/logout', (req,res) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path:'/'
+        });
+
+        return res.status(200).json({
+            mensagem: 'Logout feito com sucesso'
+        })
+    } catch (error) {
+        
+        return res.status(500).json({
+            mensagem: 'erro ao realizar logout'
+        });
+    }
+
+});
+
 // Lari, faz o codigo antes dele Não depois
 export default router;
