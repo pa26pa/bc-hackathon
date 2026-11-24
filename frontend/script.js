@@ -318,7 +318,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    // ===== GRADES DE AULAS (geradas aqui) =====
+    
+    // ===== GRADES DE AULAS (CARREGADAS DO BANCO DE DADOS) =====
+
     const HORARIOS_MANHA = [
         { h: '07:00 - 07:50' },
         { h: '07:50 - 08:40' },
@@ -339,31 +341,98 @@ document.addEventListener("DOMContentLoaded", async function () {
         { h: '17:25 - 18:15' },
     ];
 
-    const DIAS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-
-    const TURMAS = [
-        { nome: '1ºano - Manhã', horarios: HORARIOS_MANHA },
-        { nome: '1ºano - Tarde', horarios: HORARIOS_TARDE },
-        { nome: '2ºano - Manhã', horarios: HORARIOS_MANHA },
-        { nome: '2ºano - Tarde', horarios: HORARIOS_TARDE },
-        { nome: '3ºano - Manhã', horarios: HORARIOS_MANHA },
-        { nome: '3ºano - Tarde', horarios: HORARIOS_TARDE },
+    const DIAS = [
+        'Segunda',
+        'Terça',
+        'Quarta',
+        'Quinta',
+        'Sexta'
     ];
 
-    function criarGrade(turma, indice) {
+    // Identificação das seis grades que já existiam
+    const TURMAS = [
+        { nome: '1ºano - Manhã', serie: 1, periodo: 'Manhã', horarios: HORARIOS_MANHA },
+        { nome: '1ºano - Tarde', serie: 1, periodo: 'Tarde', horarios: HORARIOS_TARDE },
+        { nome: '2ºano - Manhã', serie: 2, periodo: 'Manhã', horarios: HORARIOS_MANHA },
+        { nome: '2ºano - Tarde', serie: 2, periodo: 'Tarde', horarios: HORARIOS_TARDE },
+        { nome: '3ºano - Manhã', serie: 3, periodo: 'Manhã', horarios: HORARIOS_MANHA },
+        { nome: '3ºano - Tarde', serie: 3, periodo: 'Tarde', horarios: HORARIOS_TARDE },
+    ];
+
+    // Busca os horários no banco de dados através da API
+    
+    async function carregarHorarios() {
+        try {
+
+            console.log('Iniciando busca dos horários...');
+
+            const resposta = await fetch(base_url + '/horarios', {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            });
+
+            console.log('Status HTTP:', resposta.status);
+
+            const dados = await resposta.json();
+
+            console.log('Resposta do servidor:', dados);
+
+            if (!resposta.ok) {
+                throw new Error(dados.mensagem || 'Erro HTTP: ' + resposta.status);
+            }
+
+            const horariosBanco = dados.horarios;
+
+            console.log('Horários recebidos:', horariosBanco);
+
+            const gradesContainer = document.getElementById('grades-container');
+
+            if (!gradesContainer) {
+                throw new Error('Elemento grades-container não encontrado!');
+            }
+
+            gradesContainer.innerHTML = '';
+
+            TURMAS.forEach((turma, indice) => {
+                const grade = criarGrade(turma, indice, horariosBanco);
+                gradesContainer.appendChild(grade);
+            });
+
+        } catch (erro) {
+
+            console.error('ERRO COMPLETO AO CARREGAR HORÁRIOS:', erro);
+
+            mostrarToast('Erro ao carregar horários!', 'erro');
+        }
+    }
+
+
+
+    // Criação da tabela
+    function criarGrade(turma, indice, horariosBanco) {
+
         const table = document.createElement('table');
         table.className = 'grade';
         table.dataset.turma = turma.nome;
 
-        // caption com seletor de grupo
+        // Caption com seletor de grupo
         const caption = document.createElement('caption');
         caption.className = 'select-grupo';
-        caption.appendChild(document.createTextNode(`Grade semana - Turma selecionada: ${turma.nome}`));
+
+        caption.appendChild(
+            document.createTextNode(
+                `Grade semana - Turma selecionada: ${turma.nome}`
+            )
+        );
 
         const divGrupo = document.createElement('div');
         divGrupo.className = 'secao-busca-grupo';
 
         const selectId = `escolher-grupo-${indice}`;
+
         const label = document.createElement('label');
         label.htmlFor = selectId;
         label.textContent = 'Grupo';
@@ -371,62 +440,179 @@ document.addEventListener("DOMContentLoaded", async function () {
         const select = document.createElement('select');
         select.id = selectId;
         select.name = selectId;
-        [['', 'Todos os grupos'], ['Grupo A', 'Grupo A'], ['Grupo B', 'Grupo B']].forEach(([valor, texto]) => {
+
+        [
+            ['', 'Todos os grupos'],
+            ['A/Inteira', 'Grupo A'],
+            ['B', 'Grupo B']
+        ].forEach(([valor, texto]) => {
+
             const opt = document.createElement('option');
+
             opt.value = valor;
             opt.textContent = texto;
+
             select.appendChild(opt);
         });
 
         divGrupo.append(label, select);
         caption.appendChild(divGrupo);
+
         table.appendChild(caption);
 
-        // cabeçalho
+
+        // Cabeçalho
         const thead = document.createElement('thead');
         const trHead = document.createElement('tr');
+
         ['Horário', ...DIAS].forEach(texto => {
+
             const th = document.createElement('th');
             th.textContent = texto;
+
             trHead.appendChild(th);
         });
+
         thead.appendChild(trHead);
         table.appendChild(thead);
 
-        // corpo
+
+        // Corpo da tabela
         const tbody = document.createElement('tbody');
-        turma.horarios.forEach(linha => {
-            const tr = document.createElement('tr');
 
-            const tdHora = document.createElement('td');
-            tdHora.textContent = linha.h;
-            tr.appendChild(tdHora);
+        table.appendChild(tbody);
 
-            if (linha.fixo) {
-                const td = document.createElement('td');
-                td.colSpan = DIAS.length;
-                td.textContent = linha.fixo;
-                tr.appendChild(td);
-            } else {
-                DIAS.forEach(() => {
-                    const td = document.createElement('td');
-                    td.textContent = 'Disciplina';
-                    tr.appendChild(td);
+
+        // Converte o horário recebido do SQL para HH:MM
+        function normalizarHorario(horario) {
+
+            if (!horario) return '';
+
+            return String(horario).substring(0, 5);
+        }
+
+
+        // Preenche as células de acordo com os dados do banco
+        function preencherTabela() {
+
+            tbody.innerHTML = '';
+
+            // Filtra os horários pela série e período da grade
+            let horariosFiltrados = horariosBanco.filter(item => {
+
+                return Number(item.serie) === turma.serie &&
+                    item.periodo === turma.periodo;
+            });
+
+            // Filtra pelo grupo selecionado
+            const grupoSelecionado = select.value;
+
+            if (grupoSelecionado) {
+
+                horariosFiltrados = horariosFiltrados.filter(item => {
+
+                    return item.grupo === grupoSelecionado;
                 });
             }
 
-            tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
+
+            // Percorre as linhas de horários
+            turma.horarios.forEach(linha => {
+
+                const tr = document.createElement('tr');
+
+                const tdHora = document.createElement('td');
+                tdHora.textContent = linha.h;
+
+                tr.appendChild(tdHora);
+
+
+                // Intervalo ou almoço
+                if (linha.fixo) {
+
+                    const td = document.createElement('td');
+
+                    td.colSpan = DIAS.length;
+                    td.textContent = linha.fixo;
+
+                    tr.appendChild(td);
+
+                } else {
+
+                    // Identifica o horário inicial da linha
+                    const horarioLinha = linha.h.split(' - ')[0];
+
+                    // Cria uma célula para cada dia da semana
+                    DIAS.forEach(dia => {
+
+                        const td = document.createElement('td');
+
+                        const nomeDia = dia + '-feira';
+
+                        // Procura as aulas correspondentes no banco
+                        const aulas = horariosFiltrados.filter(item => {
+
+                            return item.dia_semana === nomeDia &&
+                                normalizarHorario(item.horario) === horarioLinha;
+                        });
+
+
+                        // Preenche a célula quando encontrar uma aula
+                        if (aulas.length > 0) {
+
+                            aulas.forEach((aula, index) => {
+
+                                if (index > 0) {
+                                    td.appendChild(document.createElement('br'));
+                                }
+
+                                const disciplina = document.createElement('span');
+
+                                disciplina.textContent = aula.materia || 'Disciplina';
+
+                                td.appendChild(disciplina);
+
+                                const professor = document.createElement('span');
+
+                                professor.className = 'professor-aula';
+
+                                professor.textContent = aula.professor || 'Professor não definido';
+
+                                td.appendChild(professor);
+
+
+                                // Guarda os dados para a edição da aula
+                                if (index === 0) {
+                                    td.dataset.disciplina = aula.materia || '';
+                                    td.dataset.professor = aula.professor || '';
+                                    td.dataset.idHorario = aula.id_horario;
+                                }
+
+                            });
+
+                        }
+
+                        tr.appendChild(td);
+                    });
+                }
+
+                tbody.appendChild(tr);
+            });
+        }
+
+
+        // Atualiza a tabela quando o grupo é alterado
+        select.addEventListener('change', preencherTabela);
+
+        // Preenchimento inicial
+        preencherTabela();
 
         return table;
     }
 
-    const gradesContainer = document.getElementById('grades-container');
-    if (gradesContainer) {
-        gradesContainer.style.cssText = 'display:flex;flex-direction:column;align-items:center;width:100%;';
-        TURMAS.forEach((turma, i) => gradesContainer.appendChild(criarGrade(turma, i)));
-    }
+
+    // Carrega os dados do banco e cria as grades
+    await carregarHorarios();
 
     // ===== MODAL DE EDIÇÃO DAS AULAS =====
     const modalEditarAula = document.getElementById('modal-editar-aula');

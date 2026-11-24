@@ -101,25 +101,52 @@ router.get('/perfil', verificarToken, (req, res) => {
     });
 });
 
+
+
 router.get('/horarios', verificarToken, async (req, res) => {
     try {
-        const resultado = await connection.query(
-            'select * from horarios'
-        );
+        const [horarios] = await connection.query(`
+            SELECT
+                h.id_horario,
+                h.dia_semana,
+                h.aula,
+                h.horario,
+                t.serie,
+                t.curso,
+                t.grupo,
+                t.periodo,
+                m.nome AS materia,
+                p.nome_completo AS professor
+            FROM horarios h
+            INNER JOIN turmas t
+                ON h.turma = t.id_turma
+            INNER JOIN materias m
+                ON h.materia = m.id_materia
+            LEFT JOIN professores p
+                ON h.professor = p.id_professor
+            ORDER BY
+                t.serie,
+                t.periodo,
+                t.grupo,
+                h.dia_semana,
+                h.horario
+        `);
 
-        res.status(200).json({
-            mensagem: 'Horarios requisitados com sucesso',
-            token: token,
-            horarios: resultado
+        return res.status(200).json({
+            mensagem: 'Horários requisitados com sucesso',
+            horarios: horarios
         });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
+        console.error('ERRO REAL NA ROTA /horarios:', error);
+
+        return res.status(500).json({
             mensagem: 'Erro ao requisitar dados'
         });
     }
 });
+
+
 
 router.post('/enviando_codigo', async (req, res) => {
     const email = req.email;
