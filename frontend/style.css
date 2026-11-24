@@ -35,7 +35,6 @@ html {
     padding: 0;
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
-    color: var(--color3);
 }
 body {
     height: 100vh;
@@ -102,7 +101,7 @@ body {
     width: 100%;
     border-radius: 20px;
     font-size: 0.9em;
-    border: 2px solid var(--color3);
+    border: 2px solid #1F1250;
     margin: 5px 0 10px 0;
 }
 .login-form input:focus {box-shadow: 0 0 5px 2px #8A52F0;}
@@ -127,6 +126,7 @@ body {
     text-decoration: none;
     font-size: 0.9em;
     margin-bottom: 5px;
+    color: #1F1250;
 }
 .esqueci-a-senha:hover {text-decoration: underline;}
 .btn-login {
@@ -135,17 +135,17 @@ body {
     justify-content: center;
     width: 100%;
     border-radius: 30px;
-    border: 2px solid var(--color3);
+    border: 2px solid #1F1250;
     background-color: #8A52F0;
     height: max-content;
     padding: 5px;
     font-weight: bold;
     transition: all 0.3s ease-in-out;
     font-size: 1.2em;
+    color: #F1ECFD;
 }
 .btn-login:hover {
-    background-color: var(--color3);
-    color: #F1ECFD;
+    background-color: #1F1250;
     cursor: pointer;
 }
 
@@ -184,7 +184,7 @@ body {
     transition: 0.2s;
 }
 .otp-input:focus {
-    border-color: var(--color3);
+    border-color: #1F1250;
     box-shadow: 0px 5px 5px rgba(145, 71, 255, 0.5);
 }
 #resendBtn:disabled, #receber-codigo:disabled, #continueBtn:disabled, #backLogin:disabled {
@@ -215,7 +215,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill {
     -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-    -webkit-text-fill-color: var(--color8) !important;
+    -webkit-text-fill-color: #000000 !important;
     transition: background-color 9999s ease-in-out 0s;
 }
 
@@ -294,7 +294,6 @@ header button:hover, header button:focus {
     text-align: left;
     justify-content: center;
     align-items: center;
-    color: var(--color6);
 }
 
 .select-grupo .secao-busca-grupo {
@@ -308,7 +307,7 @@ header button:hover, header button:focus {
     border-radius: 30px;
 }
 
-.secao-busca label {font-size: 1em; font-weight: bold;}
+.secao-busca label {font-size: 1em; font-weight: bold;color: var(--color10);}
 .secao-busca input {
     width: 180px;
     height: max-content;
@@ -707,9 +706,8 @@ letter-spacing: 1px;
     padding: 30px;
     width: min(400px, 90vw);
     margin: auto;
-    background-color: var(--color5);
-    color: var(--color3);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    background-color: var(--color2);
+    color: var(--color10);
 }
 
 .modal-editar-aula::backdrop {
@@ -720,7 +718,6 @@ letter-spacing: 1px;
     text-align: center;
     font-size: 1.5em;
     margin-bottom: 20px;
-    color: var(--color3);
 }
 
 .fechar-edicao-aula {
@@ -729,9 +726,9 @@ letter-spacing: 1px;
     right: 15px;
     border: none;
     background: transparent;
-    color: var(--color3);
     font-size: 2em;
     cursor: pointer;
+    color: var(--color10);
 }
 
 #form-editar-aula {
@@ -742,38 +739,41 @@ letter-spacing: 1px;
 
 #form-editar-aula label {
     font-weight: bold;
-    color: var(--color3);
 }
 
 #form-editar-aula input {
     width: 100%;
     padding: 10px;
     border: 2px solid var(--color3);
-    border-radius: 10px;
+    border-radius: 20px;
     outline: none;
-    background-color: var(--color1);
+    background-color: #FFFFFF;
     color: var(--color3);
     margin-bottom: 10px;
 }
 
 #form-editar-aula input:focus {
-    box-shadow: 0 0 5px var(--color7);
+    border: 2px solid var(--color6);
+    box-shadow: 0 0 5px 5px #909FF1;
 }
 
 #salvar-edicao-aula {
-    padding: 10px;
-    border: 2px solid var(--color3);
-    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
     background-color: var(--color2);
-    color: var(--color3);
+    border: 2px solid var(--color9);
+    color: var(--color10);
+    border-radius: 15px;
+    padding: 5px;
     font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease-in-out
 }
 
 #salvar-edicao-aula:hover {
-    background-color: var(--color3);
-    color: var(--color1);
+    color: #F1ECFD;
+    background-color: var(--color9);
 }
 
 /* Células editáveis */

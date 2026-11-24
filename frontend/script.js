@@ -336,7 +336,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         { h: '14:40 - 15:45' },
         { h: '15:45 - 16:35' },
         { h: '16:35 - 17:25' },
-        { h: '17:25 - 18:15' },
+        { h: '17:25 - 18:15' }, 
     ];
 
     const DIAS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
