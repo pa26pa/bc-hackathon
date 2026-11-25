@@ -1225,6 +1225,13 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Primeira exibição: as seis grades padrão.
     await carregarHorariosPadrao();
+    //fechar modal segurança
+    const modalSeguranca = document.getElementById('modal-2');
+const fecharSeguranca = document.querySelector('.fechar-seguranca');
+
+fecharSeguranca?.addEventListener('click', () => {
+    modalSeguranca?.close();
+});
 
     // ===== MODAL DE EDIÇÃO DAS AULAS =====
     const modalEditarAula = document.getElementById('modal-editar-aula');
