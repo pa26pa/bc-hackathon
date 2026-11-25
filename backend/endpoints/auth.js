@@ -105,17 +105,60 @@ router.get('/perfil', verificarToken, (req, res) => {
 
 router.get('/horarios', verificarToken, async (req, res) => {
     try {
+        const { turma, grupo, professor, disciplina, sala } = req.query;
+        const filtros = [];
+        const parametros = [];
+
+        // O valor de turma usa o formato "serie|curso", por exemplo:
+        // "1|MTEC - Turma A".
+        if (turma) {
+            const [serie, curso] = String(turma).split('|');
+
+            if (!serie || !curso || !/^\d+$/.test(serie)) {
+                return res.status(400).json({ mensagem: 'Filtro de turma inválido.' });
+            }
+
+            filtros.push('t.serie = ?', 't.curso = ?');
+            parametros.push(Number(serie), curso);
+        }
+
+        if (grupo) {
+            filtros.push('t.grupo = ?');
+            parametros.push(grupo);
+        }
+
+        if (professor) {
+            filtros.push('p.id_professor = ?');
+            parametros.push(Number(professor));
+        }
+
+        if (disciplina) {
+            filtros.push('m.id_materia = ?');
+            parametros.push(Number(disciplina));
+        }
+
+        if (sala) {
+            filtros.push('h.sala = ?');
+            parametros.push(sala);
+        }
+
+        const where = filtros.length ? `WHERE ${filtros.join(' AND ')}` : '';
+
         const [horarios] = await connection.query(`
             SELECT
                 h.id_horario,
                 h.dia_semana,
                 h.aula,
                 h.horario,
+                h.sala,
+                t.id_turma,
                 t.serie,
                 t.curso,
                 t.grupo,
                 t.periodo,
+                m.id_materia,
                 m.nome AS materia,
+                p.id_professor,
                 p.nome_completo AS professor
             FROM horarios h
             INNER JOIN turmas t
@@ -124,28 +167,26 @@ router.get('/horarios', verificarToken, async (req, res) => {
                 ON h.materia = m.id_materia
             LEFT JOIN professores p
                 ON h.professor = p.id_professor
+            ${where}
             ORDER BY
                 t.serie,
-                t.periodo,
+                t.curso,
                 t.grupo,
-                h.dia_semana,
-                h.horario
-        `);
+                FIELD(h.dia_semana, 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira'),
+                h.horario,
+                h.aula
+        `, parametros);
 
         return res.status(200).json({
             mensagem: 'Horários requisitados com sucesso',
-            horarios: horarios
+            horarios
         });
 
     } catch (error) {
         console.error('ERRO REAL NA ROTA /horarios:', error);
-
-        return res.status(500).json({
-            mensagem: 'Erro ao requisitar dados'
-        });
+        return res.status(500).json({ mensagem: 'Erro ao requisitar dados' });
     }
 });
-
 
 
 router.post('/enviando_codigo', async (req, res) => {

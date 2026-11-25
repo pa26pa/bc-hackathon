@@ -788,3 +788,37 @@ letter-spacing: 1px;
     font-weight: 400;
     margin-top: 4px;
 }
+
+/* LEETAAAAAAAAAAAAAAAAAAAAA SELECTS DA ÁREA DE CONSULTA  LETAAAAAAAAAAAAAAAA*/ 
+.secao-busca select {
+    width: 180px;
+    height: max-content;
+    padding: 5px 10px;
+    font-size: 1em;
+    background-color: var(--color1);
+    color: var(--color3);
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.secao-busca select:focus {
+    outline: 2px solid var(--color6);
+}
+
+/* SELECT DE GRUPO DENTRO DA GRADE */
+.select-grupo .secao-busca-grupo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.select-grupo select {
+    width: auto;
+    padding: 5px 12px;
+    background-color: var(--color1);
+    color: var(--color3);
+    border: 1px solid var(--color6);
+    border-radius: 30px;
+}

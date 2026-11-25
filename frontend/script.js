@@ -1,13 +1,15 @@
+
 document.addEventListener("DOMContentLoaded", async function () {
 
-    // ===== CONFIG (ajuste se sua API for outra) =====
+    // ===== CONFIGURAÇÕES =====
     const base_url = '/api';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-    // ===== TOAST simples =====
+    // ===== TOAST =====
     function mostrarToast(mensagem, tipo = 'info') {
         const toast = document.createElement('div');
         toast.textContent = mensagem;
+
         Object.assign(toast.style, {
             position: 'fixed',
             bottom: '20px',
@@ -20,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             fontSize: '0.9rem',
             boxShadow: '0 4px 12px rgba(0,0,0,.3)'
         });
+
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3500);
     }
@@ -44,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 email: dados.info.email,
                 status: dados.info.status
             };
+
         } catch (error) {
             console.log('Erro ao contatar a API:', error);
             return null;
@@ -67,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         tamanho: (s) => s.length >= 8,
         maiuscula: (s) => /[A-Z]/.test(s),
         numero: (s) => /\d/.test(s),
-        especial: (s) => /[^A-Za-z0-9]/.test(s),
+        especial: (s) => /[^A-Za-z0-9]/.test(s)
     };
 
     // ===== VALIDAÇÕES =====
@@ -98,9 +102,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function atualizarBotao() {
         const emailOk = emailRegex.test(emailInput.value.trim());
+
         const senhaOk = Object.values(requisitos).every(
             (teste) => teste(senhaInput.value)
         );
+
         btnLogin.disabled = !(emailOk && senhaOk);
     }
 
@@ -115,7 +121,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     senhaInput.addEventListener('blur', () => {
-        if (validarSenha()) listaRequisitos.classList.remove('visivel');
+        if (validarSenha()) {
+            listaRequisitos.classList.remove('visivel');
+        }
     });
 
     senhaInput.addEventListener('input', () => {
@@ -126,7 +134,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     atualizarBotao();
 
-    // ===== LOGIN (registrado cedo, antes de qualquer coisa que possa falhar) =====
+    // ===== LOGIN =====
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -138,11 +146,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             const resposta = await fetch('/api/login', {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
                     email: emailInput.value.trim(),
-                    senha: senhaInput.value,
-                }),
+                    senha: senhaInput.value
+                })
             });
 
             const dados = await resposta.json();
@@ -157,11 +167,14 @@ document.addEventListener("DOMContentLoaded", async function () {
                     senhaErro.textContent = 'Não foi possível validar sua sessão.';
                     btnLogin.disabled = false;
                 }
+
             } else {
                 senhaErro.textContent = dados.mensagem || 'Falha no login.';
                 btnLogin.disabled = false;
             }
+
         } catch (erro) {
+            console.error('Erro no login:', erro);
             senhaErro.textContent = 'Erro de conexão com o servidor.';
             btnLogin.disabled = false;
         }
@@ -191,16 +204,22 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         function checkCode() {
             if (!continueBtn) return;
-            const code = Array.from(inputs).map(i => i.value).join('');
+
+            const code = Array.from(inputs)
+                .map(i => i.value)
+                .join('');
+
             continueBtn.disabled = code.length !== inputs.length;
         }
 
         inputs.forEach((input, index) => {
             input.addEventListener('input', (e) => {
                 input.value = e.target.value.replace(/[^0-9]/g, '');
+
                 if (input.value && index < inputs.length - 1) {
                     inputs[index + 1].focus();
                 }
+
                 checkCode();
             });
 
@@ -213,10 +232,15 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         container.addEventListener('paste', (e) => {
             e.preventDefault();
-            const paste = e.clipboardData.getData('text').replace(/[^0-9]/g, '');
+
+            const paste = e.clipboardData
+                .getData('text')
+                .replace(/[^0-9]/g, '');
+
             inputs.forEach((input, i) => {
                 input.value = paste[i] || '';
             });
+
             checkCode();
         });
 
@@ -228,11 +252,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             resendBtn.disabled = true;
             timeLeft = 60;
+
             clearInterval(interval);
+
             timerText.textContent = `Reenviar código em ${timeLeft}s`;
 
             interval = setInterval(() => {
                 timeLeft--;
+
                 timerText.textContent = `Reenviar código em ${timeLeft}s`;
 
                 if (timeLeft <= 0) {
@@ -248,11 +275,20 @@ document.addEventListener("DOMContentLoaded", async function () {
             continueBtn,
             resendBtn,
             startTimer,
-            getCode: () => Array.from(inputs).map(i => i.value).join(''),
+
+            getCode: () => {
+                return Array.from(inputs)
+                    .map(i => i.value)
+                    .join('');
+            },
+
             reset: () => {
                 inputs.forEach(i => i.value = '');
+
                 if (continueBtn) continueBtn.disabled = true;
+
                 clearInterval(interval);
+
                 if (timerText) timerText.textContent = '';
             }
         };
@@ -262,6 +298,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     esqueciLink.addEventListener('click', (e) => {
         e.preventDefault();
+
         loginBox.style.display = 'none';
         esqueciBox.style.display = 'flex';
     });
@@ -273,11 +310,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             esqueciEmailErro.textContent = 'Digite um e-mail válido.';
             return;
         }
+
         esqueciEmailErro.textContent = '';
 
-        // TODO: chamar a API que envia o código por email
+        // TODO: chamar a API que envia o código por e-mail
         esqueciBox.style.display = 'none';
         codigoBox.style.display = 'flex';
+
         if (otpLogin) {
             otpLogin.reset();
             otpLogin.startTimer();
@@ -286,6 +325,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     codigoForm.addEventListener('submit', (e) => {
         e.preventDefault();
+
         // TODO: validar o código na API usando otpLogin.getCode()
     });
 
@@ -297,6 +337,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     document.getElementById('voltar-codigo').addEventListener('click', () => {
         codigoBox.style.display = 'none';
         esqueciBox.style.display = 'flex';
+
         if (otpLogin) otpLogin.reset();
     });
 
@@ -314,13 +355,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                     mostrarToast(data.mensagem, data.status);
                     otpLogin.startTimer();
                 })
-                .catch(() => mostrarToast('Erro ao reenviar código', 'erro'));
+                .catch(() => {
+                    mostrarToast('Erro ao reenviar código', 'erro');
+                });
         });
     }
 
-    
-    // ===== GRADES DE AULAS (CARREGADAS DO BANCO DE DADOS) =====
-
+    // aaa
     const HORARIOS_MANHA = [
         { h: '07:00 - 07:50' },
         { h: '07:50 - 08:40' },
@@ -328,7 +369,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         { h: '09:30 - 09:45', fixo: 'Intervalo' },
         { h: '09:45 - 10:35' },
         { h: '10:35 - 11:25' },
-        { h: '11:25 - 12:15' },
+        { h: '11:25 - 12:15' }
     ];
 
     const HORARIOS_TARDE = [
@@ -338,87 +379,146 @@ document.addEventListener("DOMContentLoaded", async function () {
         { h: '14:40 - 15:45' },
         { h: '15:45 - 16:35' },
         { h: '16:35 - 17:25' },
-        { h: '17:25 - 18:15' }, 
+        { h: '17:25 - 18:15' }
     ];
 
-    const DIAS = [
-        'Segunda',
-        'Terça',
-        'Quarta',
-        'Quinta',
-        'Sexta'
-    ];
+    const DIAS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
 
-    // Identificação das seis grades que já existiam
+    // Cada uma das seis grades corresponde a uma turma/curso específico do SQL.
     const TURMAS = [
-        { nome: '1ºano - Manhã', serie: 1, periodo: 'Manhã', horarios: HORARIOS_MANHA },
-        { nome: '1ºano - Tarde', serie: 1, periodo: 'Tarde', horarios: HORARIOS_TARDE },
-        { nome: '2ºano - Manhã', serie: 2, periodo: 'Manhã', horarios: HORARIOS_MANHA },
-        { nome: '2ºano - Tarde', serie: 2, periodo: 'Tarde', horarios: HORARIOS_TARDE },
-        { nome: '3ºano - Manhã', serie: 3, periodo: 'Manhã', horarios: HORARIOS_MANHA },
-        { nome: '3ºano - Tarde', serie: 3, periodo: 'Tarde', horarios: HORARIOS_TARDE },
+        {
+            nome: '1ª série - MTEC - Turma A (Manhã)',
+            serie: 1,
+            curso: 'MTEC - Turma A',
+            periodo: 'Manhã',
+            horarios: HORARIOS_MANHA
+        },
+        {
+            nome: '1ª série - MTEC - Turma B (Manhã)',
+            serie: 1,
+            curso: 'MTEC - Turma B',
+            periodo: 'Manhã',
+            horarios: HORARIOS_MANHA
+        },
+        {
+            nome: '2ª série - Novotec Integrado - Turma A (Manhã)',
+            serie: 2,
+            curso: 'Novotec Integrado - Turma A',
+            periodo: 'Manhã',
+            horarios: HORARIOS_MANHA
+        },
+        {
+            nome: '3ª série - Novotec Integrado - Turma A (Manhã)',
+            serie: 3,
+            curso: 'Novotec Integrado - Turma A',
+            periodo: 'Manhã',
+            horarios: HORARIOS_MANHA
+        },
+        {
+            nome: '2ª série - Novotec Integrado - Turma B (Tarde)',
+            serie: 2,
+            curso: 'Novotec Integrado - Turma B',
+            periodo: 'Tarde',
+            horarios: HORARIOS_TARDE
+        },
+        {
+            nome: '3ª série - Novotec Integrado - Turma B (Tarde)',
+            serie: 3,
+            curso: 'Novotec Integrado - Turma B',
+            periodo: 'Tarde',
+            horarios: HORARIOS_TARDE
+        }
     ];
 
-    // Busca os horários no banco de dados através da API
-    
-    async function carregarHorarios() {
-        try {
+    const gradesContainer = document.getElementById('grades-container');
+    const controlesFiltro = {
+        turma: document.getElementById('filtro-turma'),
+        grupo: document.getElementById('filtro-grupo'),
+        professor: document.getElementById('filtro-professor'),
+        disciplina: document.getElementById('filtro-disciplina'),
+        sala: document.getElementById('filtro-sala')
+    };
 
-            console.log('Iniciando busca dos horários...');
-
-            const resposta = await fetch(base_url + '/horarios', {
-                method: 'GET',
-                credentials: 'same-origin',
-                headers: {
-                    'X-CSRFToken': csrfToken
-                }
-            });
-
-            console.log('Status HTTP:', resposta.status);
-
-            const dados = await resposta.json();
-
-            console.log('Resposta do servidor:', dados);
-
-            if (!resposta.ok) {
-                throw new Error(dados.mensagem || 'Erro HTTP: ' + resposta.status);
-            }
-
-            const horariosBanco = dados.horarios;
-
-            console.log('Horários recebidos:', horariosBanco);
-
-            const gradesContainer = document.getElementById('grades-container');
-
-            if (!gradesContainer) {
-                throw new Error('Elemento grades-container não encontrado!');
-            }
-
-            gradesContainer.innerHTML = '';
-
-            TURMAS.forEach((turma, indice) => {
-                const grade = criarGrade(turma, indice, horariosBanco);
-                gradesContainer.appendChild(grade);
-            });
-
-        } catch (erro) {
-
-            console.error('ERRO COMPLETO AO CARREGAR HORÁRIOS:', erro);
-
-            mostrarToast('Erro ao carregar horários!', 'erro');
-        }
+    function normalizarHorario(horario) {
+        return horario ? String(horario).substring(0, 5) : '';
     }
 
+    function preencherSelect(select, textoPadrao, opcoes) {
+        if (!select) return;
 
+        select.innerHTML = '';
+        const primeiraOpcao = document.createElement('option');
+        primeiraOpcao.value = '';
+        primeiraOpcao.textContent = textoPadrao;
+        select.appendChild(primeiraOpcao);
 
-    // Criação da tabela
+        opcoes.forEach(({ valor, texto }) => {
+            const opcao = document.createElement('option');
+            opcao.value = valor;
+            opcao.textContent = texto;
+            select.appendChild(opcao);
+        });
+    }
+
+    function popularFiltros(horarios) {
+        const turmas = new Map();
+        const grupos = new Set();
+        const professores = new Map();
+        const disciplinas = new Map();
+        const salas = new Set();
+
+        horarios.forEach(item => {
+            const chaveTurma = `${item.serie}|${item.curso}`;
+            turmas.set(chaveTurma, `${item.serie}º ano - ${item.curso}`);
+
+            if (item.grupo) grupos.add(item.grupo);
+            if (item.id_professor && item.professor) professores.set(String(item.id_professor), item.professor);
+            if (item.id_materia && item.materia) disciplinas.set(String(item.id_materia), item.materia);
+            if (item.sala) salas.add(String(item.sala));
+        });
+
+        preencherSelect(controlesFiltro.turma, 'Todas as turmas',
+            [...turmas].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')).map(([valor, texto]) => ({ valor, texto })));
+        preencherSelect(controlesFiltro.grupo, 'Todos os grupos',
+            [...grupos].sort().map(valor => ({ valor, texto: valor === 'A/Inteira' ? 'Grupo A / Classe inteira' : `Grupo ${valor}` })));
+        preencherSelect(controlesFiltro.professor, 'Todos os professores',
+            [...professores].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')).map(([valor, texto]) => ({ valor, texto })));
+        preencherSelect(controlesFiltro.disciplina, 'Todas as disciplinas',
+            [...disciplinas].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')).map(([valor, texto]) => ({ valor, texto })));
+        preencherSelect(controlesFiltro.sala, 'Todas as salas',
+            [...salas].sort().map(valor => ({ valor, texto: valor })));
+    }
+
+    async function buscarHorarios(filtros = {}) {
+        const parametros = new URLSearchParams();
+        Object.entries(filtros).forEach(([chave, valor]) => {
+            if (valor) parametros.set(chave, valor);
+        });
+
+        const query = parametros.toString();
+        const resposta = await fetch(base_url + '/horarios' + (query ? `?${query}` : ''), {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+
+        const dados = await resposta.json();
+        if (!resposta.ok) throw new Error(dados.mensagem || `Erro HTTP: ${resposta.status}`);
+        return dados.horarios || [];
+    }
+
+    function renderizarGradesPadrao(horariosBanco) {
+        gradesContainer.innerHTML = '';
+        TURMAS.forEach((turma, indice) => {
+            gradesContainer.appendChild(criarGrade(turma, indice, horariosBanco));
+        });
+    }
+
     function criarGrade(turma, indice, horariosBanco) {
-
         const table = document.createElement('table');
         table.className = 'grade';
         table.dataset.turma = turma.nome;
 
-        // Caption com seletor de grupo
         const caption = document.createElement('caption');
         caption.className = 'select-grupo';
 
@@ -430,189 +530,261 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const divGrupo = document.createElement('div');
         divGrupo.className = 'secao-busca-grupo';
-
         const selectId = `escolher-grupo-${indice}`;
-
         const label = document.createElement('label');
         label.htmlFor = selectId;
         label.textContent = 'Grupo';
-
         const select = document.createElement('select');
         select.id = selectId;
         select.name = selectId;
 
-        [
-            ['', 'Todos os grupos'],
-            ['A/Inteira', 'Grupo A'],
-            ['B', 'Grupo B']
-        ].forEach(([valor, texto]) => {
-
-            const opt = document.createElement('option');
-
-            opt.value = valor;
-            opt.textContent = texto;
-
-            select.appendChild(opt);
+        [['', 'Todos os grupos'], ['A/Inteira', 'Grupo A / Classe inteira'], ['B', 'Grupo B']].forEach(([valor, texto]) => {
+            const opcao = document.createElement('option');
+            opcao.value = valor;
+            opcao.textContent = texto;
+            select.appendChild(opcao);
         });
 
         divGrupo.append(label, select);
         caption.appendChild(divGrupo);
-
         table.appendChild(caption);
 
-
-        // Cabeçalho
         const thead = document.createElement('thead');
         const trHead = document.createElement('tr');
-
         ['Horário', ...DIAS].forEach(texto => {
-
             const th = document.createElement('th');
             th.textContent = texto;
-
             trHead.appendChild(th);
         });
-
         thead.appendChild(trHead);
         table.appendChild(thead);
 
-
-        // Corpo da tabela
         const tbody = document.createElement('tbody');
-
         table.appendChild(tbody);
 
-
-        // Converte o horário recebido do SQL para HH:MM
-        function normalizarHorario(horario) {
-
-            if (!horario) return '';
-
-            return String(horario).substring(0, 5);
-        }
-
-
-        // Preenche as células de acordo com os dados do banco
         function preencherTabela() {
-
             tbody.innerHTML = '';
+            const horariosDaTurma = horariosBanco.filter(item =>
+                Number(item.serie) === Number(turma.serie) &&
+                String(item.curso || '').trim() === turma.curso &&
+                String(item.periodo || '').trim() === turma.periodo
+            );
 
-            // Filtra os horários pela série e período da grade
-            let horariosFiltrados = horariosBanco.filter(item => {
-
-                return Number(item.serie) === turma.serie &&
-                    item.periodo === turma.periodo;
-            });
-
-            // Filtra pelo grupo selecionado
             const grupoSelecionado = select.value;
 
-            if (grupoSelecionado) {
+            let horariosFiltrados = horariosDaTurma;
 
-                horariosFiltrados = horariosFiltrados.filter(item => {
+            if (grupoSelecionado === 'A/Inteira') {
 
-                    return item.grupo === grupoSelecionado;
-                });
+                horariosFiltrados = horariosDaTurma.filter(item =>
+                    String(item.grupo || '').trim() === 'A/Inteira'
+                );
+
+            } else if (grupoSelecionado === 'B') {
+
+                const horariosBase = horariosDaTurma.filter(item =>
+                    String(item.grupo || '').trim() === 'A/Inteira'
+                );
+
+                const horariosB = horariosDaTurma.filter(item =>
+                    String(item.grupo || '').trim() === 'B'
+                );
+
+                horariosFiltrados = horariosBase.filter(base => {
+                    const possuiSubstituicao = horariosB.some(item =>
+                        item.dia_semana === base.dia_semana &&
+                        String(item.horario).substring(0, 5) ===
+                        String(base.horario).substring(0, 5)
+                    );
+
+                    return !possuiSubstituicao;
+                }).concat(horariosB);
             }
 
+            console.log('TURMA:', turma.nome);
+            console.log('GRUPO SELECIONADO:', grupoSelecionado || 'Todos');
 
-            // Percorre as linhas de horários
-            turma.horarios.forEach(linha => {
+            console.table(horariosFiltrados.map(item => ({
+                grupo: item.grupo,
+                dia: item.dia_semana,
+                horario: item.horario,
+                disciplina: item.materia,
+                professor: item.professor
+            })));
 
+            const converterMinutos = horario => {
+                const [hora, minuto] = horario.split(':').map(Number);
+                return hora * 60 + minuto;
+            };
+
+            const linhasGrade = [...turma.horarios];
+            const horariosExistentes = new Set(linhasGrade.map(linha => linha.h.split(' - ')[0]));
+
+            horariosDaTurma.forEach(item => {
+                const horario = normalizarHorario(item.horario);
+                if (horario && !horariosExistentes.has(horario)) {
+                    linhasGrade.push({ h: horario, extra: true });
+                    horariosExistentes.add(horario);
+                }
+            });
+
+            linhasGrade.sort((a, b) => converterMinutos(a.h.split(' - ')[0]) - converterMinutos(b.h.split(' - ')[0]));
+
+            linhasGrade.forEach(linha => {
                 const tr = document.createElement('tr');
-
                 const tdHora = document.createElement('td');
                 tdHora.textContent = linha.h;
-
+                if (linha.extra) tdHora.classList.add('horario-extra');
                 tr.appendChild(tdHora);
 
-
-                // Intervalo ou almoço
                 if (linha.fixo) {
-
                     const td = document.createElement('td');
-
                     td.colSpan = DIAS.length;
                     td.textContent = linha.fixo;
-
                     tr.appendChild(td);
-
                 } else {
-
-                    // Identifica o horário inicial da linha
-                    const horarioLinha = linha.h.split(' - ')[0];
-
-                    // Cria uma célula para cada dia da semana
+                    const horarioLinha = normalizarHorario(linha.h.split(' - ')[0]);
                     DIAS.forEach(dia => {
-
                         const td = document.createElement('td');
-
                         const nomeDia = dia + '-feira';
+                        const aulas = horariosFiltrados.filter(item =>
+                            item.dia_semana === nomeDia && normalizarHorario(item.horario) === horarioLinha
+                        );
 
-                        // Procura as aulas correspondentes no banco
-                        const aulas = horariosFiltrados.filter(item => {
+                        aulas.forEach((aula, index) => {
+                            if (index > 0) td.appendChild(document.createElement('br'));
 
-                            return item.dia_semana === nomeDia &&
-                                normalizarHorario(item.horario) === horarioLinha;
+                            const disciplina = document.createElement('span');
+                            disciplina.textContent = aula.materia || 'Disciplina';
+                            td.appendChild(disciplina);
+
+                            const professor = document.createElement('span');
+                            professor.className = 'professor-aula';
+                            professor.textContent = aula.professor || 'Professor não definido';
+                            td.appendChild(professor);
+
+                            const sala = document.createElement('span');
+                            sala.className = 'sala-aula';
+                            sala.textContent = aula.sala || '—';
+
+                            if (!aula.sala) {
+                                sala.title = 'Sala não cadastrada';
+                            }
+                            td.appendChild(sala);
+
+                            if (index === 0) {
+                                td.dataset.disciplina = aula.materia || '';
+                                td.dataset.professor = aula.professor || '';
+                                td.dataset.sala = aula.sala || '';
+                                td.dataset.idHorario = aula.id_horario;
+                            }
                         });
-
-
-                        // Preenche a célula quando encontrar uma aula
-                        if (aulas.length > 0) {
-
-                            aulas.forEach((aula, index) => {
-
-                                if (index > 0) {
-                                    td.appendChild(document.createElement('br'));
-                                }
-
-                                const disciplina = document.createElement('span');
-
-                                disciplina.textContent = aula.materia || 'Disciplina';
-
-                                td.appendChild(disciplina);
-
-                                const professor = document.createElement('span');
-
-                                professor.className = 'professor-aula';
-
-                                professor.textContent = aula.professor || 'Professor não definido';
-
-                                td.appendChild(professor);
-
-
-                                // Guarda os dados para a edição da aula
-                                if (index === 0) {
-                                    td.dataset.disciplina = aula.materia || '';
-                                    td.dataset.professor = aula.professor || '';
-                                    td.dataset.idHorario = aula.id_horario;
-                                }
-
-                            });
-
-                        }
-
                         tr.appendChild(td);
                     });
                 }
-
                 tbody.appendChild(tr);
             });
         }
 
-
-        // Atualiza a tabela quando o grupo é alterado
         select.addEventListener('change', preencherTabela);
-
-        // Preenchimento inicial
         preencherTabela();
-
         return table;
     }
 
+    function renderizarTabelaPesquisa(horarios) {
+        gradesContainer.innerHTML = '';
 
-    // Carrega os dados do banco e cria as grades
-    await carregarHorarios();
+        if (!horarios.length) {
+            const mensagem = document.createElement('p');
+            mensagem.className = 'sem-resultados';
+            mensagem.textContent = 'Nenhum horário encontrado para os filtros selecionados.';
+            gradesContainer.appendChild(mensagem);
+            return;
+        }
+
+        const tabela = document.createElement('table');
+        tabela.className = 'grade tabela-pesquisa';
+        const thead = document.createElement('thead');
+        const cabecalho = document.createElement('tr');
+        ['Turma', 'Grupo', 'Dia', 'Aula', 'Horário', 'Disciplina', 'Professor', 'Sala'].forEach(titulo => {
+            const th = document.createElement('th');
+            th.textContent = titulo;
+            cabecalho.appendChild(th);
+        });
+        thead.appendChild(cabecalho);
+        tabela.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        horarios.forEach(item => {
+            const tr = document.createElement('tr');
+            const valores = [
+                `${item.serie}º ano - ${item.curso}`,
+                item.grupo || '—',
+                item.dia_semana || '—',
+                item.aula ?? '—',
+                normalizarHorario(item.horario) || '—',
+                item.materia || '—',
+                item.professor || 'Professor não definido',
+                item.sala || '—'
+            ];
+            valores.forEach(valor => {
+                const td = document.createElement('td');
+                td.textContent = String(valor);
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        tabela.appendChild(tbody);
+        gradesContainer.appendChild(tabela);
+    }
+
+    async function carregarHorariosPadrao() {
+        try {
+            const horarios = await buscarHorarios();
+            popularFiltros(horarios);
+            renderizarGradesPadrao(horarios);
+        } catch (erro) {
+            console.error('ERRO AO CARREGAR HORÁRIOS:', erro);
+            mostrarToast('Erro ao carregar horários!', 'erro');
+        }
+    }
+
+    const btnConsultar = document.getElementById('btn-consultar');
+    const btnLimparBusca = document.getElementById('btn-limpar');
+
+    btnConsultar?.addEventListener('click', async () => {
+        try {
+            const filtros = {
+                turma: controlesFiltro.turma?.value || '',
+                grupo: controlesFiltro.grupo?.value || '',
+                professor: controlesFiltro.professor?.value || '',
+                disciplina: controlesFiltro.disciplina?.value || '',
+                sala: controlesFiltro.sala?.value || ''
+            };
+
+            const existeFiltro = Object.values(filtros).some(Boolean);
+            if (!existeFiltro) {
+                await carregarHorariosPadrao();
+                return;
+            }
+
+            const horarios = await buscarHorarios(filtros);
+            renderizarTabelaPesquisa(horarios);
+        } catch (erro) {
+            console.error('ERRO NA CONSULTA:', erro);
+            mostrarToast(erro.message || 'Erro ao consultar horários!', 'erro');
+        }
+    });
+
+    btnLimparBusca?.addEventListener('click', async () => {
+        Object.values(controlesFiltro).forEach(select => {
+            if (select) select.value = '';
+        });
+        await carregarHorariosPadrao();
+    });
+
+    // Primeira exibição: as seis grades padrão.
+    await carregarHorariosPadrao();
 
     // ===== MODAL DE EDIÇÃO DAS AULAS =====
     const modalEditarAula = document.getElementById('modal-editar-aula');
@@ -620,20 +792,31 @@ document.addEventListener("DOMContentLoaded", async function () {
     const formEditarAula = document.getElementById('form-editar-aula');
     const inputDisciplina = document.getElementById('editar-disciplina');
     const inputProfessor = document.getElementById('editar-professor');
+    const inputSala = document.getElementById('editar-sala');
 
     let celulaSelecionada = null;
 
-    // Proteção: se algum elemento não existir, o resto do script continua funcionando
-    if (modalEditarAula && formEditarAula && inputDisciplina && inputProfessor) {
+    if (
+        modalEditarAula &&
+        formEditarAula &&
+        inputDisciplina &&
+        inputProfessor && 
+        inputSala
+    ) {
 
         document.addEventListener('click', (e) => {
-            const celula = e.target.closest('.grade tbody td:not(:first-child):not([colspan])');
+
+            const celula = e.target.closest(
+                '.grade tbody td:not(:first-child):not([colspan])'
+            );
+
             if (!celula) return;
 
             celulaSelecionada = celula;
 
             inputDisciplina.value = celula.dataset.disciplina || '';
             inputProfessor.value = celula.dataset.professor || '';
+            inputSala.value = celula.dataset.sala || '';
 
             modalEditarAula.showModal();
         });
@@ -645,18 +828,36 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             const disciplina = inputDisciplina.value.trim();
             const professor = inputProfessor.value.trim();
+            const sala = inputSala.value.trim();
 
             if (!disciplina || !professor) return;
 
             celulaSelecionada.dataset.disciplina = disciplina;
             celulaSelecionada.dataset.professor = professor;
+            celulaSelecionada.dataset.sala = sala;
 
-            // textContent evita injeção de HTML
-            celulaSelecionada.textContent = disciplina;
-            const span = document.createElement('span');
-            span.className = 'professor-aula';
-            span.textContent = professor;
-            celulaSelecionada.appendChild(span);
+            celulaSelecionada.innerHTML = '';
+
+            const spanDisciplina = document.createElement('span');
+            spanDisciplina.textContent = disciplina;
+
+            const spanProfessor = document.createElement('span');
+            spanProfessor.className = 'professor-aula';
+            spanProfessor.textContent = professor;
+
+            const spanSala = document.createElement('span');
+            spanSala.className = 'sala-aula';
+            spanSala.textContent = sala || '—';
+
+            if (!sala) {
+                spanSala.title = 'Sala não cadastrada';
+            }
+
+            celulaSelecionada.append(
+                spanDisciplina,
+                spanProfessor,
+                spanSala
+            );
 
             modalEditarAula.close();
             celulaSelecionada = null;
@@ -677,10 +878,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // ===== LIMPAR BUSCA =====
     document.getElementById('btn-limpar')?.addEventListener('click', () => {
-        document.querySelectorAll('.busca-box input').forEach(i => i.value = '');
+        document.querySelectorAll('.busca-box input').forEach(i => {
+            i.value = '';
+        });
     });
 
-    // ===== VERIFICA SE JÁ EXISTE UMA SESSÃO =====
+    // ===== VERIFICAR SE JÁ EXISTE UMA SESSÃO =====
     const sessao = await verificar_token();
 
     if (sessao && sessao.email) {
@@ -693,13 +896,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     const dropdownMenu = document.getElementById('dropdown-menu');
 
     if (btnDropdown && dropdownMenu) {
+
         btnDropdown.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdownMenu.classList.toggle('show');
         });
 
         document.addEventListener('click', (e) => {
-            if (!dropdownMenu.contains(e.target) && !btnDropdown.contains(e.target)) {
+            if (
+                !dropdownMenu.contains(e.target) &&
+                !btnDropdown.contains(e.target)
+            ) {
                 dropdownMenu.classList.remove('show');
             }
         });
@@ -707,15 +914,33 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // ===== MODO ESCURO =====
     const btnTema = document.querySelectorAll('.btn-tema');
+
     if (btnTema.length) {
+
         const temaSalvo = localStorage.getItem('witch-tema') || 'claro';
-        document.documentElement.setAttribute('data-tema', temaSalvo === 'escuro' ? 'escuro' : '');
+
+        document.documentElement.setAttribute(
+            'data-tema',
+            temaSalvo === 'escuro' ? 'escuro' : ''
+        );
+
         btnTema.forEach((btn) => {
+
             btn.checked = temaSalvo === 'escuro';
+
             btn.addEventListener('change', () => {
+
                 const escuro = btn.checked;
-                document.documentElement.setAttribute('data-tema', escuro ? 'escuro' : '');
-                localStorage.setItem('witch-tema', escuro ? 'escuro' : 'claro');
+
+                document.documentElement.setAttribute(
+                    'data-tema',
+                    escuro ? 'escuro' : ''
+                );
+
+                localStorage.setItem(
+                    'witch-tema',
+                    escuro ? 'escuro' : 'claro'
+                );
             });
         });
     }
@@ -730,12 +955,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     let historico = [];
 
     const TIPOS_ACAO = {
-        edicao: { classe: 'edicao', texto: 'Edição de tabela' },
-        senha: { classe: 'senha', texto: 'Troca de senha' },
-        email: { classe: 'email', texto: 'Troca de e-mail' }
+        edicao: {
+            classe: 'edicao',
+            texto: 'Edição de tabela'
+        },
+        senha: {
+            classe: 'senha',
+            texto: 'Troca de senha'
+        },
+        email: {
+            classe: 'email',
+            texto: 'Troca de e-mail'
+        }
     };
 
     function renderHistorico() {
+
         historicoBody.innerHTML = '';
 
         if (historico.length === 0) {
@@ -748,15 +983,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         historicoTable.style.display = 'table';
 
         historico.forEach(item => {
+
             const tipo = TIPOS_ACAO[item.tipo] || TIPOS_ACAO.edicao;
 
             const tr = document.createElement('tr');
             tr.className = 'acao-' + tipo.classe;
 
             const td1 = document.createElement('td');
+
             const tag = document.createElement('span');
             tag.className = 'tag-acao ' + tipo.classe;
             tag.textContent = tipo.texto;
+
             td1.appendChild(tag);
 
             const td2 = document.createElement('td');
@@ -766,46 +1004,64 @@ document.addEventListener("DOMContentLoaded", async function () {
             td3.textContent = item.data;
 
             tr.append(td1, td2, td3);
+
             historicoBody.appendChild(tr);
         });
     }
 
     async function carregarHistorico() {
+
         try {
             const res = await fetch(base_url + '/historico', {
                 method: 'GET',
                 credentials: 'same-origin',
-                headers: { 'X-CSRFToken': csrfToken }
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
             });
+
             const data = await res.json();
+
             historico = data.historico || [];
+
         } catch {
             historico = [];
             mostrarToast('Erro ao carregar histórico', 'erro');
         }
+
         renderHistorico();
     }
 
     if (modalHistorico) {
+
         renderHistorico();
 
-        fecharHistorico?.addEventListener('click', () => modalHistorico.close());
+        fecharHistorico?.addEventListener('click', () => {
+            modalHistorico.close();
+        });
 
         modalHistorico.addEventListener('click', e => {
-            if (e.target === modalHistorico) modalHistorico.close();
+            if (e.target === modalHistorico) {
+                modalHistorico.close();
+            }
         });
     }
 
     // ===== ABRIR MODAIS =====
     document.querySelectorAll('.btn-open-modal').forEach(button => {
+
         button.addEventListener('click', () => {
+
             const modalId = button.getAttribute('data-modal');
             const modal = document.getElementById(modalId);
+
             if (!modal) return;
 
             dropdownMenu?.classList.remove('show');
 
-            if (modalId === 'modal-1') carregarHistorico();
+            if (modalId === 'modal-1') {
+                carregarHistorico();
+            }
 
             modal.showModal();
         });
@@ -824,19 +1080,30 @@ document.addEventListener("DOMContentLoaded", async function () {
     const tamanhoMinimo = 14;
     const tamanhoMaximo = 20;
 
-    let tamanhoFonte = Number(localStorage.getItem('tamanho-fonte')) || tamanhoPadrao;
+    let tamanhoFonte =
+        Number(localStorage.getItem('tamanho-fonte')) || tamanhoPadrao;
 
     function atualizarFonte() {
+
         document.documentElement.style.fontSize = tamanhoFonte + 'px';
 
-        if (tamanhoAtual) tamanhoAtual.textContent = tamanhoFonte + 'px';
-        if (aumentarFonte) aumentarFonte.disabled = tamanhoFonte >= tamanhoMaximo;
-        if (diminuirFonte) diminuirFonte.disabled = tamanhoFonte <= tamanhoMinimo;
+        if (tamanhoAtual) {
+            tamanhoAtual.textContent = tamanhoFonte + 'px';
+        }
+
+        if (aumentarFonte) {
+            aumentarFonte.disabled = tamanhoFonte >= tamanhoMaximo;
+        }
+
+        if (diminuirFonte) {
+            diminuirFonte.disabled = tamanhoFonte <= tamanhoMinimo;
+        }
 
         localStorage.setItem('tamanho-fonte', tamanhoFonte);
     }
 
     aumentarFonte?.addEventListener('click', () => {
+
         if (tamanhoFonte < tamanhoMaximo) {
             tamanhoFonte += 2;
             atualizarFonte();
@@ -844,6 +1111,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     diminuirFonte?.addEventListener('click', () => {
+
         if (tamanhoFonte > tamanhoMinimo) {
             tamanhoFonte -= 2;
             atualizarFonte();
@@ -856,11 +1124,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     if (modalFonte) {
-        fecharFonte?.addEventListener('click', () => modalFonte.close());
-        fecharFonteX?.addEventListener('click', () => modalFonte.close());
+
+        fecharFonte?.addEventListener('click', () => {
+            modalFonte.close();
+        });
+
+        fecharFonteX?.addEventListener('click', () => {
+            modalFonte.close();
+        });
 
         modalFonte.addEventListener('click', (e) => {
-            if (e.target === modalFonte) modalFonte.close();
+            if (e.target === modalFonte) {
+                modalFonte.close();
+            }
         });
     }
 
@@ -870,6 +1146,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const btnLogout = document.getElementById('btn-logout');
 
     btnLogout?.addEventListener('click', async () => {
+
         try {
             const resposta = await fetch('/api/logout', {
                 method: 'POST',
@@ -879,19 +1156,24 @@ document.addEventListener("DOMContentLoaded", async function () {
             const dados = await resposta.json();
 
             if (resposta.ok) {
+
                 console.log(dados.mensagem);
 
                 telaSite.style.display = 'none';
                 telaLogin.style.display = 'flex';
+
                 dropdownMenu?.classList.remove('show');
 
                 emailInput.value = '';
                 senhaInput.value = '';
+
                 validarSenha();
                 atualizarBotao();
+
             } else {
                 console.log(dados.mensagem);
             }
+
         } catch (error) {
             console.error('Erro ao realizar logout:', error);
         }
