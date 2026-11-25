@@ -10,675 +10,218 @@
     <link rel="stylesheet" href="style.css">
     <title>BC | Bruno Consultas</title>
 </head>
-<body> 
+<body>
     <!--TELA LOGIN-->
     <div id="login-div" class="div-principal">
-      <div class="login-box" id="login-box">
-        <h1>Login</h1>
-        <form action="#" method="post" id="login-form" class="login-form">
-          <label for="email">Email:</label>
-          <input type="email" id="email" name="email" required autocomplete="email">
-          <p class="erro" id="email-erro"></p>
+        <div class="login-box" id="login-box">
+            <h1>Login</h1>
+            <form action="#" method="post" id="login-form" class="login-form">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required autocomplete="email">
+                <p class="erro" id="email-erro"></p>
 
-          <label for="senha">Senha:</label>
-          <input type="password" id="senha" name="senha" required autocomplete="current-password">
+                <label for="senha">Senha:</label>
+                <input type="password" id="senha" name="senha" required autocomplete="current-password">
 
-          <ul id="requisitos" class="requisitos">
-            <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
-            <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
-            <li data-req="numero"><span class="icone">✗</span> Um número</li>
-            <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
-          </ul>
+                <ul id="requisitos" class="requisitos">
+                    <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
+                    <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
+                    <li data-req="numero"><span class="icone">✗</span> Um número</li>
+                    <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
+                </ul>
 
-          <p class="erro" id="senha-erro"></p>
+                <p class="erro" id="senha-erro"></p>
 
-          <a href="#esqueci-box" id="esqueci-a-senha" class="esqueci-a-senha">Esqueci a senha</a>
+                <a href="#esqueci-box" id="esqueci-a-senha" class="esqueci-a-senha">Esqueci a senha</a>
 
-          <button type="submit" class="btn-login" id="btn-login">Login</button>
-        </form>
-      </div>
-
-      <div class="login-box" id="esqueci-box" style="display: none;">
-        <div class="back-modal">
-          <i class="fa-solid fa-circle-arrow-left back-arrow-modal"></i>
+                <button type="submit" class="btn-login" id="btn-login">Login</button>
+            </form>
         </div>
-        <h1>Coloque seu Email</h1>
-        <form action="#" method="post" id="esqueci-form" class="login-form">
-          <label for="email">Email:</label>
-          <input type="email" id="esqueci-email" name="email" required><br>
-          <p class="erro" id="email-erro"></p>
-          <button type="submit" class="btn-login" id="btn-esqueci">Continuar</button>
-        </form>
-      </div>
 
-      <div class="login-box codigo-box" id="inserir-codigo-box" style="display: none;">
-        <form action="#" method="post" id="inserir-codigo-form" class="login-form">
+        <div class="login-box" id="esqueci-box" style="display: none;">
             <div class="back-modal">
-              <i class="fa-solid fa-circle-arrow-left back-arrow-modal"></i>
+                <i class="fa-solid fa-circle-arrow-left back-arrow-modal" id="voltar-esqueci"></i>
             </div>
-            <h1 data-i18n>Insira o Código</h1>
-            <p data-i18n>Por favor, insira o código enviado para o seu email.</p> <br><br>
-            <div class="otp-container">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-                <input type="text" maxlength="1" class="otp-input">
-            </div> <br><br>
-            <p id="timerText" data-i18n>Reenviar código em 60s</p>
-            <button id="resendBtn" class="btn-login" disabled data-i18n>Reenviar Código</button>
-            <button type="submit" class="btn-login" id="btn-codigo" data-i18n>Continuar</button>
-        </form>
-    </div>
-  </div>
-
-    <!--TELA DO SITE!-->
-    <div id="home-div" class="div-principal">
-        <header>
-          <img src="logo.png" alt="logo">
-          <div class="dropdown-menu-wrap">
-            <button class="menu-dropdown dropdown-btn" id="menu-dropdown"><i class="fa-solid fa-bars menu-icon"></i></button>
-            
-            <div id="dropdown-menu" class="dropdown-menu">
-              <ul>
-                  <li><span>Tamanho da Letra</span></li>
-                  <hr>
-                  <li class="toggle-item adjust-slider">
-                      <span>Tema Escuro</span>
-                      <label class="switch">
-                          <input type="checkbox" id="dark-theme" class="btn-tema">
-                          <span class="slider"></span>
-                      </label>
-                  </li>
-                  <hr>
-                  <li class="btn-open-modal" data-modal="modal-1">
-                    <span>Histórico</span>
-                  </li>  
-                  <hr>   
-                  <li><span>Segurança</span></li>
-                  <hr>               
-                  <li id="btn-logout">Sair</li>
-              </ul>
-            </div>
-            <dialog class="modal-historico" id="modal-1">
-              <h1 data-i18n>Histórico de Ações no Site</h1>
-
-              <!--legenda das cores-->
-              <ul class="historico-legenda">
-                  <li><span class="badge badge-edicao"></span> <span data-i18n>Edição de tabela</span></li>
-                  <li><span class="badge badge-senha"></span> <span data-i18n>Troca de senha</span></li>
-                  <li><span class="badge badge-email"></span> <span data-i18n>Troca de e-mail</span></li>
-              </ul>
-
-              <!--quando não houver ações (lista vazia)-->
-              <p id="historico-empty" data-i18n>Nenhuma ação registrada ainda</p>
-
-              <!--tabela que será preenchida pelo JS-->
-              <table id="historico-table">
-                  <tbody id="historico-body"></tbody>
-              </table>
-
-              <button id="fechar-historico" data-i18n>Fechar</button>
-          </dialog>
-          </div>
-          
-        </header>
-
-        <div class="busca-box">
-          <div class="secao-busca">
-            <label for="escolher-turma">Turma</label>
-            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas">
-            <datalist id="lista-turma">
-              <option value="1º ano - Manhã (1DA)">
-              <option value="2º ano - Manhã (2DA)">
-              <option value="3º ano - Manhã (3DA)">
-              <option value="1º ano - Tarde (1DB)">
-              <option value="2º ano - Tarde (2DB)">
-              <option value="3º ano - Tarde (3DB)">
-            </datalist>
-          </div>
-          <div class="secao-busca">
-            <label for="escolher-turma">Grupo</label>
-            <input list="lista-grupo" id="escolher-turma" name="escolher-turma" placeholder="Todos">
-            <datalist id="lista-grupo">
-              <option value="Grupo A">
-              <option value="Grupo B">
-            </datalist>
-          </div>
-          <div class="secao-busca">
-            <label for="escolher-turma">Professor</label>
-            <input list="lista-prof" id="escolher-turma" name="escolher-turma" placeholder="Todos">
-            <datalist id="lista-prof">
-              <option value="Aleteia V. M. Souto">
-              <option value="Alícia V. Lima">
-              <option value="Andre S. Maia">
-              <option value="Bruno Cano">
-              <option value="Cassio M. L. de Aquino">
-              <option value="Célide T. da Silva">
-            </datalist>
-          </div>
-          <div class="secao-busca">
-            <label for="escolher-turma">Disciplina</label>
-            <input list="lista-discip" id="escolher-turma" name="escolher-turma" placeholder="Todas">
-            <datalist id="lista-discip">
-              <option value="1º ano - Manhã (1DA)">1DA</option>
-              <option value=" (2DA)">2º ano - Manhã</option>
-              <option value="3º ano - Manhã (3DA)">
-              <option value="1º ano - Tarde (1DB)">
-              <option value="2º ano - Tarde (2DB)">
-              <option value="3º ano - Tarde (3DB)">
-            </datalist>
-          </div>
-          <div class="secao-busca">
-            <label for="escolher-turma">Sala</label>
-            <input list="lista-turma" id="escolher-turma" name="escolher-turma" placeholder="Todas">
-            <datalist id="lista-turma">
-              <option value="1º ano - Manhã (1DA)">
-              <option value="2º ano - Manhã (2DA)">
-              <option value="3º ano - Manhã (3DA)">
-              <option value="1º ano - Tarde (1DB)">
-              <option value="2º ano - Tarde (2DB)">
-              <option value="3º ano - Tarde (3DB)">
-            </datalist>
-          </div>
-          <div class="secao-busca">
-            <button class="btn-limpar" id="btn-limpar">Limpar</button>
-            <button class="btn-consultar" id="btn-consultar">Consultar</button>
-          </div>
+            <h1>Coloque seu Email</h1>
+            <form action="#" method="post" id="esqueci-form" class="login-form">
+                <label for="esqueci-email">Email:</label>
+                <input type="email" id="esqueci-email" name="email" required>
+                <p class="erro" id="esqueci-email-erro"></p>
+                <button type="submit" class="btn-login" id="btn-esqueci">Continuar</button>
+            </form>
         </div>
 
-        <table id="grade" class="grade"> <!-- grade de grade de aulas, com os horários e as disciplinas-->
-
-          <caption class ="select-grupo">
-            Grade semana - Turma selecionada: 1ºano - Manhã
-            <div class="secao-busca-grupo">
-              <label for="escolher-grupo">Grupo</label>
-                <select id="escolher-grupo" name="escolher-grupo">
-                  <option value="" selected>Todos os grupos</option>
-                  <option value="Grupo A">Grupo A</option>
-                  <option value="Grupo B">Grupo B</option>
-               </select>
-              </div>
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Segunda</th>
-              <th>Terça</th>
-              <th>Quarta</th>
-              <th>Quinta</th>
-              <th>Sexta</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            <tr>
-              <td>07:00 - 07:50</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>07:50 - 08:40</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>08:40 - 09:30</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>09:30 - 09:45</td>
-              <td colspan="5">Intervalo</td>
-            </tr>
-            <tr>
-              <td>09:45 - 10:35</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>10:35 - 11:25</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>11:25 - 12:15</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-
-            <table id="grade" class="grade">
-
-          <caption class ="select-grupo">
-            Grade semana - Turma selecionada: 1ºano - Tarde
-            <div class="secao-busca-grupo">
-              <label for="escolher-grupo">Grupo</label>
-                <select id="escolher-grupo" name="escolher-grupo">
-                  <option value="" selected>Todos os grupos</option>
-                  <option value="Grupo A">Grupo A</option>
-                  <option value="Grupo B">Grupo B</option>
-               </select>
-              </div>
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Segunda</th>
-              <th>Terça</th>
-              <th>Quarta</th>
-              <th>Quinta</th>
-              <th>Sexta</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            <tr>
-              <td>12:15 - 13:00</td>
-              <td colspan="5">Almoço</td>
-             </tr>
-            <tr>
-              <td>13:00 - 13:50</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>13:50 - 14:40</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>14:40 - 15:45</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            
-            <tr>
-              <td>15:45- 16:35</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>16:35 - 17:25</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>17:25 - 18:15</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-          </tbody>
-          
-        </table>
-
-        <table id="grade" class="grade"> <!-- grade de grade de aulas, com os horários e as disciplinas-->
-
-          <caption class ="select-grupo">
-            Grade semana - Turma selecionada: 2ºano - Manhã
-            <div class="secao-busca-grupo">
-              <label for="escolher-grupo">Grupo</label>
-                <select id="escolher-grupo" name="escolher-grupo">
-                  <option value="" selected>Todos os grupos</option>
-                  <option value="Grupo A">Grupo A</option>
-                  <option value="Grupo B">Grupo B</option>
-               </select>
-              </div>
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Segunda</th>
-              <th>Terça</th>
-              <th>Quarta</th>
-              <th>Quinta</th>
-              <th>Sexta</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            <tr>
-              <td>07:00 - 07:50</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>07:50 - 08:40</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>08:40 - 09:30</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>09:30 - 09:45</td>
-              <td colspan="5">Intervalo</td>
-            </tr>
-            <tr>
-              <td>09:45 - 10:35</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>10:35 - 11:25</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>11:25 - 12:15</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-
-            <table id="grade" class="grade"> <!-- grade de grade de aulas, com os horários e as disciplinas-->
-
-          <table id="grade" class="grade">
-
-          <caption class ="select-grupo">
-            Grade semana - Turma selecionada: 2ºano - Tarde
-            <div class="secao-busca-grupo">
-              <label for="escolher-grupo">Grupo</label>
-                <select id="escolher-grupo" name="escolher-grupo">
-                  <option value="" selected>Todos os grupos</option>
-                  <option value="Grupo A">Grupo A</option>
-                  <option value="Grupo B">Grupo B</option>
-               </select>
-              </div>
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Segunda</th>
-              <th>Terça</th>
-              <th>Quarta</th>
-              <th>Quinta</th>
-              <th>Sexta</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            <tr>
-              <td>12:15 - 13:00</td>
-              <td colspan="5">Almoço</td>
-             </tr>
-            <tr>
-              <td>13:00 - 13:50</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>13:50 - 14:40</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>14:40 - 15:45</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            
-            <tr>
-              <td>15:45- 16:35</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>16:35 - 17:25</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>17:25 - 18:15</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-          </tbody>
-          
-        </table>
-
-            <table id="grade" class="grade"> <!-- grade de grade de aulas, com os horários e as disciplinas-->
-
-          <caption class ="select-grupo">
-            Grade semana - Turma selecionada: 3ºano - Manhã
-            <div class="secao-busca-grupo">
-              <label for="escolher-grupo">Grupo</label>
-                <select id="escolher-grupo" name="escolher-grupo">
-                  <option value="" selected>Todos os grupos</option>
-                  <option value="Grupo A">Grupo A</option>
-                  <option value="Grupo B">Grupo B</option>
-               </select>
-              </div>
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Segunda</th>
-              <th>Terça</th>
-              <th>Quarta</th>
-              <th>Quinta</th>
-              <th>Sexta</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            <tr>
-              <td>07:00 - 07:50</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>07:50 - 08:40</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>08:40 - 09:30</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>09:30 - 09:45</td>
-              <td colspan="5">Intervalo</td>
-            </tr>
-            <tr>
-              <td>09:45 - 10:35</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>10:35 - 11:25</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>11:25 - 12:15</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-
-            <table id="grade" class="grade">
-
-          <caption class ="select-grupo">
-            Grade semana - Turma selecionada: 3ºano - Tarde
-            <div class="secao-busca-grupo">
-              <label for="escolher-grupo">Grupo</label>
-                <select id="escolher-grupo" name="escolher-grupo">
-                  <option value="" selected>Todos os grupos</option>
-                  <option value="Grupo A">Grupo A</option>
-                  <option value="Grupo B">Grupo B</option>
-               </select>
-              </div>
-          </caption>
-
-          <thead>
-            <tr>
-              <th>Horário</th>
-              <th>Segunda</th>
-              <th>Terça</th>
-              <th>Quarta</th>
-              <th>Quinta</th>
-              <th>Sexta</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            <tr>
-              <td>12:15 - 13:00</td>
-              <td colspan="5">Almoço</td>
-             </tr>
-            <tr>
-              <td>13:00 - 13:50</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>13:50 - 14:40</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>14:40 - 15:45</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            
-            <tr>
-              <td>15:45- 16:35</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>16:35 - 17:25</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-            <tr>
-              <td>17:25 - 18:15</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-              <td>Disciplina</td>
-            </tr>
-          </tbody>
-          
-        </table>
-
+        <div class="login-box codigo-box" id="inserir-codigo-box" style="display: none;">
+            <form action="#" method="post" id="inserir-codigo-form" class="login-form">
+                <div class="back-modal">
+                    <i class="fa-solid fa-circle-arrow-left back-arrow-modal" id="voltar-codigo"></i>
+                </div>
+                <h1>Insira o Código</h1>
+                <p>Por favor, insira o código enviado para o seu email.</p> <br><br>
+                <div class="otp-container">
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric">
+                </div> <br><br>
+                <p id="timerText">Reenviar código em 60s</p>
+                <button type="button" id="resendBtn" class="btn-login" disabled>Reenviar Código</button>
+                <button type="submit" class="btn-login" id="btn-codigo">Continuar</button>
+            </form>
+        </div>
     </div>
 
     <!--TELA DO SITE-->
-    <div id="home-div" class="div-principal">oii</div>
+    <div id="home-div" class="div-principal">
+        <header>
+            <img src="logo.png" alt="logo">
+            <div class="dropdown-menu-wrap">
+                <button class="menu-dropdown dropdown-btn" id="menu-dropdown" type="button" aria-label="Menu">
+                    <i class="fa-solid fa-bars menu-icon"></i>
+                </button>
+
+                <div id="dropdown-menu" class="dropdown-menu">
+                    <ul>
+                        <li class="btn-open-modal" data-modal="modal-fonte">
+                            <span>Tamanho da Letra</span>
+                        </li>
+                        <hr>
+                        <li class="toggle-item adjust-slider">
+                            <span>Tema Escuro</span>
+                            <label class="switch">
+                                <input type="checkbox" id="dark-theme" class="btn-tema">
+                                <span class="slider"></span>
+                            </label>
+                        </li>
+                        <hr>
+                        <li class="btn-open-modal" data-modal="modal-1">
+                            <span>Histórico</span>
+                        </li>
+                        <hr>
+                        <li><span>Segurança</span></li>
+                        <hr>
+                        <li id="btn-logout">Sair</li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- MODAL HISTÓRICO -->
+        <dialog class="modal-historico" id="modal-1">
+            <h1>Histórico de Ações no Site</h1>
+
+            <ul class="historico-legenda">
+                <li><span class="badge badge-edicao"></span> <span>Edição de tabela</span></li>
+                <li><span class="badge badge-senha"></span> <span>Troca de senha</span></li>
+                <li><span class="badge badge-email"></span> <span>Troca de e-mail</span></li>
+            </ul>
+
+            <p id="historico-empty">Nenhuma ação registrada ainda</p>
+
+            <table id="historico-table">
+                <tbody id="historico-body"></tbody>
+            </table>
+
+            <button type="button" id="fechar-historico">Fechar</button>
+        </dialog>
+
+        <!-- MODAL TAMANHO DA LETRA (com X) -->
+        <dialog class="modal-fonte" id="modal-fonte">
+            <button type="button" class="fechar-edicao-aula" id="fechar-fonte-x" aria-label="Fechar">&times;</button>
+
+            <h1>Tamanho da letra</h1>
+            <p>Altere o tamanho dos textos do site:</p>
+
+            <div class="controles-fonte">
+                <button type="button" id="diminuir-fonte">A−</button>
+                <span id="tamanho-atual">16px</span>
+                <button type="button" id="aumentar-fonte">A+</button>
+            </div>
+
+            <button type="button" id="resetar-fonte">Restaurar padrão</button>
+            <button type="button" id="fechar-fonte">Fechar</button>
+        </dialog>
+
+        <!-- MODAL EDITAR AULA -->
+        <dialog class="modal-editar-aula" id="modal-editar-aula">
+            <button type="button" class="fechar-edicao-aula" id="fechar-edicao-aula" aria-label="Fechar">&times;</button>
+            <h2>Editar aula</h2>
+            <form id="form-editar-aula" method="dialog">
+                <label for="editar-disciplina">Disciplina</label>
+                <input type="text" id="editar-disciplina" required>
+
+                <label for="editar-professor">Professor</label>
+                <input type="text" id="editar-professor" required>
+
+                <button type="submit" id="salvar-edicao-aula">Salvar</button>
+            </form>
+        </dialog>
+
+        <!-- BUSCA -->
+        <div class="busca-box">
+            <div class="secao-busca">
+                <label for="busca-turma">Turma</label>
+                <input list="lista-turma" id="busca-turma" name="busca-turma" placeholder="Todas">
+                <datalist id="lista-turma">
+                    <option value="1º ano - Manhã (1DA)">
+                    <option value="2º ano - Manhã (2DA)">
+                    <option value="3º ano - Manhã (3DA)">
+                    <option value="1º ano - Tarde (1DB)">
+                    <option value="2º ano - Tarde (2DB)">
+                    <option value="3º ano - Tarde (3DB)">
+                </datalist>
+            </div>
+            <div class="secao-busca">
+                <label for="busca-grupo">Grupo</label>
+                <input list="lista-grupo" id="busca-grupo" name="busca-grupo" placeholder="Todos">
+                <datalist id="lista-grupo">
+                    <option value="Grupo A">
+                    <option value="Grupo B">
+                </datalist>
+            </div>
+            <div class="secao-busca">
+                <label for="busca-prof">Professor</label>
+                <input list="lista-prof" id="busca-prof" name="busca-prof" placeholder="Todos">
+                <datalist id="lista-prof">
+                    <option value="Aleteia V. M. Souto">
+                    <option value="Alícia V. Lima">
+                    <option value="Andre S. Maia">
+                    <option value="Bruno Cano">
+                    <option value="Cassio M. L. de Aquino">
+                    <option value="Célide T. da Silva">
+                </datalist>
+            </div>
+            <div class="secao-busca">
+                <label for="busca-discip">Disciplina</label>
+                <input list="lista-discip" id="busca-discip" name="busca-discip" placeholder="Todas">
+                <datalist id="lista-discip">
+                    <option value="Matemática">
+                    <option value="Português">
+                    <option value="Física">
+                    <option value="Química">
+                    <option value="Biologia">
+                </datalist>
+            </div>
+            <div class="secao-busca">
+                <label for="busca-sala">Sala</label>
+                <input list="lista-sala" id="busca-sala" name="busca-sala" placeholder="Todas">
+                <datalist id="lista-sala">
+                    <option value="Sala 101">
+                    <option value="Sala 102">
+                    <option value="Sala 103">
+                </datalist>
+            </div>
+            <div class="secao-busca">
+                <button type="button" class="btn-limpar" id="btn-limpar">Limpar</button>
+                <button type="button" class="btn-consultar" id="btn-consultar">Consultar</button>
+            </div>
+        </div>
+
+        <!-- As 6 grades de aulas são geradas pelo script.js aqui dentro -->
+        <div id="grades-container"></div>
+    </div>
+
     <script type="module" src="/script.js"></script>
 </body>
 </html>
