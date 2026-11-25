@@ -99,7 +99,7 @@
                             <span>Histórico</span>
                         </li>
                         <hr>
-                        <li><span>Segurança</span></li>
+                        <li class="btn-open-modal" data-modal="modal-2"><span>Segurança</span></li>
                         <hr>
                         <li id="btn-logout">Sair</li>
                     </ul>
@@ -109,6 +109,9 @@
 
         <!-- MODAL HISTÓRICO -->
         <dialog class="modal-historico" id="modal-1">
+            <div class="back-modal close-modal">
+                <button id="fechar-historico" class="btn-close-modal" data-modal="modal-5"><i class="fa-solid fa-x close-x"></i></button>
+            </div>
             <h1>Histórico de Ações no Site</h1>
 
             <ul class="historico-legenda">
@@ -122,8 +125,14 @@
             <table id="historico-table">
                 <tbody id="historico-body"></tbody>
             </table>
+        </dialog>
 
-            <button type="button" id="fechar-historico">Fechar</button>
+        <!-- MODAL SEGURANÇA -->
+        <dialog class="modal-seguranca" id="modal-2">
+            <div class="back-modal close-modal">
+                <button id="fechar-seguranca" class="btn-close-modal" data-modal="modal-2"><i class="fa-solid fa-x close-x"></i></button>
+            </div>
+            
         </dialog>
 
         <!-- MODAL TAMANHO DA LETRA (com X) -->
@@ -153,6 +162,9 @@
 
                 <label for="editar-professor">Professor</label>
                 <input type="text" id="editar-professor" required>
+
+                <label for="editar-sala">Sala</label>
+                <input type="text" id="editar-sala" required>
 
                 <button type="submit" id="salvar-edicao-aula">Salvar</button>
             </form>

@@ -424,7 +424,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         caption.appendChild(
             document.createTextNode(
-                `Grade semana - Turma selecionada: ${turma.nome}`
+                `${turma.nome}`
             )
         );
 
@@ -895,5 +895,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         } catch (error) {
             console.error('Erro ao realizar logout:', error);
         }
+    });
+
+    //botão para fechar os modais
+    const closeButtons = document.querySelectorAll('.btn-close-modal');
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {//=> : é uma função anônima, mais curta que function(){} e mantém o contexto de 'this'
+            const modalId = button.getAttribute('data-modal');
+            const modal = document.getElementById(modalId);
+            if (modal) {  // ← proteção
+                modal.close();
+            }
+        });
     });
 });

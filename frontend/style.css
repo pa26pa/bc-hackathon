@@ -151,7 +151,7 @@ body {
     cursor: pointer;
 }
 
-.back-modal {
+.back-modal:not(.close-modal) {
     position: absolute;
     top: 5%;
     left: 5%;
@@ -159,11 +159,19 @@ body {
     width: max-content;
     height: auto;
 }
-.back-modal .back-arrow-modal {
+.back-modal .back-arrow-modal, .back-modal .btn-close-modal {
     background-color: transparent;
     border: none;
     font-size: 2.3em;
     cursor: pointer;
+}
+.close-modal {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+    display: flex;
+    width: max-content;
+    height: auto;
 }
 
 /*card de inserir o código*/
@@ -595,27 +603,14 @@ letter-spacing: 1px;
 .tag-acao.senha  { background: var(--acao-senha); }
 .tag-acao.email  { background: var(--acao-email); }
 
-/* botão fechar (igual ao .btn-login) */
-#fechar-historico {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    margin-top: 15px;
-    padding: 5px;
-    border-radius: 30px;
-    border: 2px solid var(--color3);
-    background-color: #8A52F0;
-    color: #1F1250;
-    font-weight: bold;
-    font-size: 1.2em;
+/* botão fechar modal*/
+.btn-close-modal {
+    border: 3px solid red;
+    background: transparent;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    color: var(--color3);
 }
-#fechar-historico:hover {
-    background-color: var(--color3);
-    color: #F1ECFD;
-}
+
 
 /* MODAL TAMANHO DA LETRA */
 
