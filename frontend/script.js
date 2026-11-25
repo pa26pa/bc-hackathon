@@ -323,11 +323,155 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
-    codigoForm.addEventListener('submit', (e) => {
+    //MUDANÇA COM IAAAAAAAAAAA
+    // ===== VERIFICAR CÓDIGO =====
+    const senhaBox = document.getElementById('senha-box');
+    const codigoErro = document.getElementById('codigo-erro');
+
+    codigoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // TODO: validar o código na API usando otpLogin.getCode()
+        const btnCodigo = document.getElementById('btn-codigo');
+        btnCodigo.disabled = true;
+        codigoErro.textContent = '';
+
+        try {
+            // AJUSTE a rota/corpo conforme o seu back-end
+            const resposta = await fetch('/api/verificar-codigo', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: esqueciEmail.value.trim(),
+                    codigo: otpLogin.getCode()
+                })
+            });
+
+            const dados = await resposta.json();
+
+            if (resposta.ok) {
+                codigoBox.style.display = 'none';
+                senhaBox.style.display = 'flex';
+                otpLogin.reset();
+            } else {
+                codigoErro.textContent = dados.mensagem || 'Código inválido.';
+                btnCodigo.disabled = false;
+            }
+        } catch (erro) {
+            console.error('Erro ao verificar código:', erro);
+            codigoErro.textContent = 'Erro de conexão com o servidor.';
+            btnCodigo.disabled = false;
+        }
     });
+
+    // ===== NOVA SENHA =====
+    const senhaForm = document.getElementById('senha-form');
+    const novaSenhaInput = document.getElementById('nova-senha');
+    const confirmarSenhaInput = document.getElementById('confirmar-senha');
+    const confirmarSenhaErro = document.getElementById('confirmar-senha-erro');
+    const listaRequisitosNova = document.getElementById('requisitos-nova');
+    const btnSenha = document.getElementById('btn-senha');
+
+    function validarNovaSenha() {
+        const senha = novaSenhaInput.value;
+        let tudoOk = true;
+
+        for (const [nome, teste] of Object.entries(requisitos)) {
+            const li = listaRequisitosNova.querySelector(`[data-req="${nome}"]`);
+            const icone = li.querySelector('.icone');
+            const cumprido = teste(senha);
+
+            li.classList.toggle('ok', cumprido);
+            icone.classList.toggle('ok', cumprido);
+            icone.textContent = cumprido ? '✓' : '✗';
+
+            if (!cumprido) tudoOk = false;
+        }
+        return tudoOk;
+    }
+
+    function validarConfirmacao() {
+        const confirmacao = confirmarSenhaInput.value;
+        const iguais = confirmacao === novaSenhaInput.value;
+
+        // só mostra erro depois que o usuário começou a digitar a confirmação
+        confirmarSenhaErro.textContent =
+            confirmacao && !iguais ? 'As senhas não coincidem.' : '';
+
+        return iguais && confirmacao.length > 0;
+    }
+
+    function atualizarBotaoSenha() {
+        btnSenha.disabled = !(validarNovaSenha() && validarConfirmacao());
+    }
+
+    novaSenhaInput.addEventListener('focus', () => {
+        listaRequisitosNova.classList.add('visivel');
+        validarNovaSenha();
+    });
+
+    novaSenhaInput.addEventListener('blur', () => {
+        if (validarNovaSenha()) {
+            listaRequisitosNova.classList.remove('visivel');
+        }
+    });
+
+    novaSenhaInput.addEventListener('input', atualizarBotaoSenha);
+    confirmarSenhaInput.addEventListener('input', atualizarBotaoSenha);
+
+    function voltarParaLogin() {
+        senhaForm.reset();
+        listaRequisitosNova.classList.remove('visivel');
+        confirmarSenhaErro.textContent = '';
+        validarNovaSenha();
+        btnSenha.disabled = true;
+
+        senhaBox.style.display = 'none';
+        loginBox.style.display = 'flex';
+
+        // limpa o formulário de login também
+        form.reset();
+        emailErro.textContent = '';
+        senhaErro.textContent = '';
+        validarSenha();
+        atualizarBotao();
+    }
+
+    senhaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!validarNovaSenha() || !validarConfirmacao()) return;
+
+        btnSenha.disabled = true;
+
+        try {
+            // AJUSTE a rota/corpo conforme o seu back-end
+            const resposta = await fetch('/api/redefinir-senha', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: esqueciEmail.value.trim(),
+                    senha: novaSenhaInput.value
+                })
+            });
+
+            const dados = await resposta.json();
+
+            if (resposta.ok) {
+                voltarParaLogin();
+            } else {
+                confirmarSenhaErro.textContent = dados.mensagem || 'Não foi possível redefinir a senha.';
+                btnSenha.disabled = false;
+            }
+        } catch (erro) {
+            console.error('Erro ao redefinir senha:', erro);
+            confirmarSenhaErro.textContent = 'Erro de conexão com o servidor.';
+            btnSenha.disabled = false;
+        }
+    });
+
+    document.getElementById('voltar-senha').addEventListener('click', voltarParaLogin);
 
     document.getElementById('voltar-esqueci').addEventListener('click', () => {
         esqueciBox.style.display = 'none';

@@ -197,9 +197,10 @@ body {
     border-color: #1F1250;
     box-shadow: 0px 5px 5px rgba(145, 71, 255, 0.5);
 }
-#resendBtn:disabled, #receber-codigo:disabled, #continueBtn:disabled, #backLogin:disabled {
+#resendBtn:disabled, #receber-codigo:disabled, #continueBtn:disabled, #backLogin:disabled,
+#btn-codigo:disabled, #btn-senha:disabled {
     cursor: not-allowed;
-    opacity: 0.6; /* opcional, reforça o visual de desabilitado */
+    opacity: 0.6;
 }
 
 /*AJUSTE DO BUG DE QUANDO COLA NO INPUT (autofill)*/
@@ -355,22 +356,23 @@ header button:hover, header button:focus {
 
 /* Grade de horários */
 .grade {
-width: 85%;
-max-width: 1100px;
-margin: 10px auto;
-border-collapse: separate;
-border-spacing: 4px;
-text-align: center;
-font-family: 'Poppins', sans-serif;
-color: var(--color6);
+    width: 100%;
+    max-width: 1100px;
+    height: max-content;
+    margin: 10px auto;
+    border-collapse: separate;
+    border-spacing: 4px;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    color: var(--color6);
 }
 
 .grade caption {
-font-size: 1.5625rem;
-font-weight: 600;
-padding: 10px;
-color: var(--color6);
-text-align: left;
+    font-size: 1.5625rem;
+    font-weight: 600;
+    padding: 10px;
+    color: var(--color6);
+    text-align: left;
 }
 
 .grade caption span {
@@ -789,21 +791,23 @@ letter-spacing: 1px;
     margin-top: 4px;
 }
 
-/* LEETAAAAAAAAAAAAAAAAAAAAA SELECTS DA ÁREA DE CONSULTA  LETAAAAAAAAAAAAAAAA*/ 
+/*SELECTS DA ÁREA DE CONSULTA*/ 
 .secao-busca select {
     width: 180px;
     height: max-content;
     padding: 5px 10px;
     font-size: 1em;
-    background-color: var(--color1);
+    background-color: #F1ECFD;
     color: var(--color3);
     border: none;
     border-radius: 20px;
     cursor: pointer;
+    outline: none;
 }
 
 .secao-busca select:focus {
-    outline: 2px solid var(--color6);
+    border: 2px solid var(--color6);
+    box-shadow: 0 0 5px 5px #909FF1;
 }
 
 /* SELECT DE GRUPO DENTRO DA GRADE */
@@ -817,8 +821,13 @@ letter-spacing: 1px;
 .select-grupo select {
     width: auto;
     padding: 5px 12px;
-    background-color: var(--color1);
+    background-color: #F1ECFD;
     color: var(--color3);
     border: 1px solid var(--color6);
     border-radius: 30px;
+    outline: none;
+}
+.select-grupo select:focus {
+    border: 2px solid var(--color6);
+    box-shadow: 0 0 5px 5px #909FF1;
 }

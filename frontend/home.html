@@ -65,9 +65,34 @@
                     <input type="text" maxlength="1" class="otp-input" inputmode="numeric">
                     <input type="text" maxlength="1" class="otp-input" inputmode="numeric">
                 </div> <br><br>
+                <p class="erro" id="codigo-erro"></p>
                 <p id="timerText">Reenviar código em 60s</p>
                 <button type="button" id="resendBtn" class="btn-login" disabled>Reenviar Código</button>
                 <button type="submit" class="btn-login" id="btn-codigo">Continuar</button>
+            </form>
+        </div>
+
+        <div class="login-box senha-box" id="senha-box" style="display: none;">
+            <div class="back-modal">
+                <i class="fa-solid fa-circle-arrow-left back-arrow-modal" id="voltar-senha"></i>
+            </div>
+            <h1>Nova Senha</h1>
+            <form action="#" method="post" id="senha-form" class="login-form">
+                <label for="nova-senha">Nova senha:</label>
+                <input type="password" id="nova-senha" name="nova-senha" required autocomplete="new-password">
+
+                <ul id="requisitos-nova" class="requisitos">
+                    <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
+                    <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
+                    <li data-req="numero"><span class="icone">✗</span> Um número</li>
+                    <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
+                </ul>
+
+                <label for="confirmar-senha">Confirme sua senha:</label>
+                <input type="password" id="confirmar-senha" name="confirmar-senha" required autocomplete="new-password">
+                <p class="erro" id="confirmar-senha-erro"></p>
+
+                <button type="submit" class="btn-login" id="btn-senha" disabled>Continuar</button>
             </form>
         </div>
     </div>
