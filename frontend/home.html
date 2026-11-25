@@ -129,13 +129,83 @@
 
         <!-- MODAL SEGURANÇA -->
         <dialog class="modal-seguranca" id="modal-2">
-            <div class="back-modal close-modal">
-                <button id="fechar-seguranca" class="btn-close-modal" data-modal="modal-2"><i class="fa-solid fa-x close-x"></i></button>
+            <button type="button" id="fechar-seguranca" class="fechar-seguranca" data-modal="modal-2" aria-label="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="seguranca-cabecalho">
+                <div class="seguranca-icone-titulo">
+                    <div>
+                        <h1>Segurança da conta</h1>
+                        <p>Gerencie seu e-mail e sua senha.</p>
+                    </div>
+                </div>
             </div>
 
+            <div class="seguranca-conteudo">
+                <!-- ALTERAR E-MAIL -->
+                <section class="seguranca-card seguranca-card-email">
+                    <div class="seguranca-card-titulo">
+                        <div>
+                            <h2>Alterar e-mail</h2>
+                            <p>Atualize o endereço vinculado à sua conta.</p>
+                        </div>
+                    </div>
+
+                    <form class="form-seguranca" id="form-alterar-email">
+                        <div class="campo-seguranca">
+                            <label for="email-atual">E-mail atual</label>
+                            <input type="email" id="email-atual" placeholder="seuemail@exemplo.com" autocomplete="email" required>
+                        </div>
+                        <div class="campo-seguranca">
+                            <label for="novo-email">Novo e-mail</label>
+                            <input type="email" id="novo-email" placeholder="novoemail@exemplo.com" autocomplete="email" required>
+                        </div>
+                        <div class="campo-seguranca">
+                            <label for="confirmar-email">Confirmar novo e-mail</label>
+                            <input type="email" id="confirmar-email" placeholder="Digite novamente o novo e-mail" autocomplete="email" required>
+                        </div>
+                        <button type="button" class="btn-seguranca btn-email">
+                             Salvar novo e-mail
+                        </button>
+                    </form>
+                </section>
+
+                <!-- ALTERAR SENHA -->
+                <section class="seguranca-card seguranca-card-senha">
+                    <div class="seguranca-card-titulo">
+                        <div>
+                            <h2>Alterar senha</h2>
+                            <p>Escolha uma senha forte para sua conta.</p>
+                            <br>
+                        </div>
+                    </div>
+
+                    <form class="form-seguranca" id="form-alterar-senha">
+                        <div class="campo-seguranca">
+                            <label for="senha-atual">Senha atual</label>
+                            <input type="password" id="senha-atual" placeholder="Digite sua senha atual" autocomplete="current-password" required>
+                        </div>
+                        <div class="campo-seguranca">
+                            <label for="nova-senha">Nova senha</label>
+                            <input type="password" id="nova-senha" placeholder="Digite a nova senha" autocomplete="new-password" required> <br>
+                            <small class="ajuda-seguranca">Use pelo menos 8 caracteres, uma letra maiúscula, um número e um caractere especial.</small>
+                        </div>  
+                        <div class="campo-seguranca">
+                            <label for="confirmar-senha">Confirmar nova senha</label>
+                            <input type="password" id="confirmar-senha" placeholder="Digite novamente a nova senha" autocomplete="new-password" required>
+                        </div>
+                        <button type="button" class="btn-seguranca btn-senha">
+                            </i> Salvar nova senha
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <p class="aviso-seguranca"><i class="fa-solid fa-circle-info"></i> Esta área é destinada às configurações de segurança da sua conta.</p>
         </dialog>
 
-        <!-- MODAL TAMANHO DA LETRA (com X) -->
+        <!-- MODAL TAMANHO DA LETRA  -->
         <dialog class="modal-fonte" id="modal-fonte">
             <button type="button" class="fechar-edicao-aula" id="fechar-fonte-x" aria-label="Fechar">&times;</button>
 
