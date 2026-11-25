@@ -245,11 +245,8 @@ body {
     border-color: #1F1250;
     box-shadow: 0px 5px 5px rgba(145, 71, 255, 0.5);
 }
-
-#resendBtn:disabled,
-#receber-codigo:disabled,
-#continueBtn:disabled,
-#backLogin:disabled {
+#resendBtn:disabled, #receber-codigo:disabled, #continueBtn:disabled, #backLogin:disabled,
+#btn-codigo:disabled, #btn-senha:disabled {
     cursor: not-allowed;
     opacity: 0.6;
 }
@@ -424,8 +421,9 @@ header button:focus {
 /* Grade de horários */
 
 .grade {
-    width: 85%;
+    width: 100%;
     max-width: 1100px;
+    height: max-content;
     margin: 10px auto;
     border-collapse: separate;
     border-spacing: 4px;
@@ -936,15 +934,17 @@ header button:focus {
     height: max-content;
     padding: 5px 10px;
     font-size: 1em;
-    background-color: var(--color1);
+    background-color: #F1ECFD;
     color: var(--color3);
     border: none;
     border-radius: 20px;
     cursor: pointer;
+    outline: none;
 }
 
 .secao-busca select:focus {
-    outline: 2px solid var(--color6);
+    border: 2px solid var(--color6);
+    box-shadow: 0 0 5px 5px #909FF1;
 }
 
 /* SELECT DE GRUPO DENTRO DA GRADE */
@@ -959,7 +959,7 @@ header button:focus {
 .select-grupo select {
     width: auto;
     padding: 5px 12px;
-    background-color: var(--color1);
+    background-color: #F1ECFD;
     color: var(--color3);
     border: 1px solid var(--color6);
     border-radius: 30px;
@@ -1168,4 +1168,9 @@ header button:focus {
 
 .form-seguranca button:active {
     transform: scale(0.98);
+    outline: none;
+}
+.select-grupo select:focus {
+    border: 2px solid var(--color6);
+    box-shadow: 0 0 5px 5px #909FF1;
 }

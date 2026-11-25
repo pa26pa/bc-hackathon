@@ -9,7 +9,6 @@ import verificarToken from '../middleware/check.js';
 const router = express.Router();
 
 router.post('/login', async (req, res) => {
-    console.log('req:', req);
 
     try {
         const { email, senha } = req.body;
@@ -26,7 +25,7 @@ router.post('/login', async (req, res) => {
         );
 
         if (resultado.length === 0) {
-            console.log(resultado.length);
+            
 
             return res.status(401).json({
                 mensagem: 'Email ou senha incorretos!'
@@ -189,66 +188,247 @@ router.get('/horarios', verificarToken, async (req, res) => {
 });
 
 
-router.post('/enviando_codigo', async (req, res) => {
-    const email = req.email;
-    const codigo = Math.floor(Math.random() * 900000) + 100000;
-    const resposta = await enviar_email(email, codigo);
 
-    if (!resposta) {
-        res.status(500).json({
-            mensagem: 'Não foi possivel enviar o email'
+// ===== RECUPERAÇÃO DE SENHA =====
+
+// Verifica o token que guarda o código enviado por e-mail.
+function verificarCodigoToken(req, res, next) {
+
+    const token = req.cookies?.codigoToken;
+
+    if (!token) {
+        return res.status(401).json({
+            mensagem: 'Solicite um novo código de recuperação.'
         });
     }
-
-    const token = jwt.sign(
-        { codigo: codigo, email: email },
-        process.env.JWT_SECRET,
-        { expiresIn: '10m' }
-    );
-
-    res.status(200).json({
-        mensagem: 'Email enviado sucesso',
-        token: token
-    });
-});
-
-router.post('/checar_codigo', verificarToken, async (req, res) => {
-    const codigo_guardado = req.usuarioCodigo;
-    const { codigo_inserido } = req.body;
-
-    if (codigo_guardado !== codigo_inserido) {
-        res.status(400).json({
-            mensagem: 'Codigo incorreto'
-        });
-    }
-
-    res.status(200).json({
-        mensagem: 'Codigo correto'
-    });
-});
-
-router.post('/redefinir_senha', verificarToken, async (req, res) => {
-    const { senha_nova } = req.body;
-    const email = req.email;
-
-    const senha_criptografada = await bcrypt.hash(senha_nova, 10);
 
     try {
-        const resultado = await connection.query(
-            "update usuarios set senha = ? where email = ?",
-            [senha_criptografada, email]
-        );
+        const dados = jwt.verify(token, process.env.JWT_SECRET);
+
+        req.emailRecuperacao = dados.email;
+        req.codigoRecuperacao = dados.codigo;
+
+        next();
 
     } catch (error) {
-        res.status(500).json({
-            mensagem: 'Erro interno do servidor: ', error
+        return res.status(401).json({
+            mensagem: 'Código expirado. Solicite um novo.'
+        });
+    }
+}
+
+
+// Verifica se o código já foi validado.
+function verificarResetToken(req, res, next) {
+
+    const token = req.cookies?.resetToken;
+
+    if (!token) {
+        return res.status(401).json({
+            mensagem: 'Valide o código antes de redefinir a senha.'
         });
     }
 
-    res.status(200).json({
-        mensagem: 'Senha atualixada com sucesso'
-    });
+    try {
+        const dados = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (dados.tipo !== 'redefinicao-senha') {
+            return res.status(401).json({
+                mensagem: 'Token de recuperação inválido.'
+            });
+        }
+
+        req.emailRecuperacao = dados.email;
+
+        next();
+
+    } catch (error) {
+        return res.status(401).json({
+            mensagem: 'Sessão de recuperação expirada. Solicite um novo código.'
+        });
+    }
+}
+
+
+// ===== ENVIAR CÓDIGO =====
+router.post('/enviando_codigo', async (req, res) => {
+
+    try {
+
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                mensagem: 'Informe seu e-mail.'
+            });
+        }
+
+        // Confere se o usuário existe.
+        const [usuarios] = await connection.query(
+            'SELECT id_usuario, email FROM usuario WHERE email = ?',
+            [email.trim()]
+        );
+
+        if (usuarios.length === 0) {
+            return res.status(404).json({
+                mensagem: 'E-mail não encontrado.'
+            });
+        }
+
+        const emailUsuario = usuarios[0].email;
+
+        const codigo = String(
+            Math.floor(10000 + Math.random() * 90000)
+        );
+
+        // Aguarda o envio real do e-mail.
+        await enviar_email(emailUsuario, codigo);
+
+        const token = jwt.sign(
+            {
+                email: emailUsuario,
+                codigo: codigo
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '10m' }
+        );
+
+        // Guarda o código em cookie protegido.
+        res.cookie('codigoToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 10 * 60 * 1000,
+            path: '/api'
+        });
+
+        // Invalida uma autorização anterior de redefinição.
+        res.clearCookie('resetToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/api'
+        });
+
+        return res.status(200).json({
+            mensagem: 'Código enviado para seu e-mail!'
+        });
+
+    } catch (error) {
+
+        console.error('ERRO AO ENVIAR CÓDIGO:', error);
+
+        return res.status(500).json({
+            mensagem: 'Não foi possível enviar o e-mail. Verifique as configurações.'
+        });
+    }
 });
+
+
+// ===== CONFERIR CÓDIGO =====
+router.post('/checar_codigo', verificarCodigoToken, async (req, res) => {
+
+    try {
+
+        const { codigo_inserido } = req.body;
+
+        if (
+            String(codigo_inserido || '') !==
+            String(req.codigoRecuperacao)
+        ) {
+            return res.status(400).json({
+                mensagem: 'Código incorreto.'
+            });
+        }
+
+        // O código foi confirmado. Agora autoriza a troca de senha.
+        const tokenReset = jwt.sign(
+            {
+                email: req.emailRecuperacao,
+                tipo: 'redefinicao-senha'
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '10m' }
+        );
+
+        res.cookie('resetToken', tokenReset, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 10 * 60 * 1000,
+            path: '/api'
+        });
+
+        // O código original não precisa mais ficar disponível.
+        res.clearCookie('codigoToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/api'
+        });
+
+        return res.status(200).json({
+            mensagem: 'Código confirmado com sucesso!'
+        });
+
+    } catch (error) {
+
+        console.error('ERRO AO CONFERIR CÓDIGO:', error);
+
+        return res.status(500).json({
+            mensagem: 'Erro ao verificar o código.'
+        });
+    }
+});
+
+
+// ===== REDEFINIR SENHA =====
+router.post('/redefinir_senha', verificarResetToken, async (req, res) => {
+
+    try {
+
+        const { senha_nova } = req.body;
+
+        if (!senha_nova) {
+            return res.status(400).json({
+                mensagem: 'Informe a nova senha.'
+            });
+        }
+
+        const senhaCriptografada = await bcrypt.hash(senha_nova, 10);
+
+        const [resultado] = await connection.query(
+            'UPDATE usuario SET senha = ? WHERE email = ?',
+            [senhaCriptografada, req.emailRecuperacao]
+        );
+
+        if (resultado.affectedRows === 0) {
+            return res.status(404).json({
+                mensagem: 'Usuário não encontrado.'
+            });
+        }
+
+        res.clearCookie('resetToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/api'
+        });
+
+        return res.status(200).json({
+            mensagem: 'Senha atualizada com sucesso!'
+        });
+
+    } catch (error) {
+
+        console.error('ERRO AO REDEFINIR SENHA:', error);
+
+        return res.status(500).json({
+            mensagem: 'Erro interno ao atualizar a senha.'
+        });
+    }
+});
+
 
 router.post('/atualizar_email_senha', verificarToken, async (req, res) => {
     const { email, senha } = req.body;

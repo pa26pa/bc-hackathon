@@ -303,31 +303,232 @@ document.addEventListener("DOMContentLoaded", async function () {
         esqueciBox.style.display = 'flex';
     });
 
-    esqueciForm.addEventListener('submit', (e) => {
+    
+    esqueciForm.addEventListener('submit', async (e) => {
+
         e.preventDefault();
 
-        if (!emailRegex.test(esqueciEmail.value.trim())) {
+        const email = esqueciEmail.value.trim();
+
+        if (!emailRegex.test(email)) {
             esqueciEmailErro.textContent = 'Digite um e-mail válido.';
             return;
         }
 
         esqueciEmailErro.textContent = '';
 
-        // TODO: chamar a API que envia o código por e-mail
-        esqueciBox.style.display = 'none';
-        codigoBox.style.display = 'flex';
+        try {
 
-        if (otpLogin) {
-            otpLogin.reset();
-            otpLogin.startTimer();
+            const resposta = await fetch('/api/enviando_codigo', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+
+            const dados = await resposta.json();
+
+            if (!resposta.ok) {
+                mostrarToast(dados.mensagem || 'Não foi possível enviar o código.', 'erro');
+                return;
+            }
+
+            mostrarToast(dados.mensagem, 'sucesso');
+
+            esqueciBox.style.display = 'none';
+            codigoBox.style.display = 'flex';
+
+            if (otpLogin) {
+                otpLogin.reset();
+                otpLogin.startTimer();
+            }
+
+        } catch (erro) {
+
+            console.error('Erro ao solicitar código:', erro);
+
+            mostrarToast('Erro de conexão com o servidor.', 'erro');
         }
     });
 
-    codigoForm.addEventListener('submit', (e) => {
+
+    //MUDANÇA COM IAAAAAAAAAAA
+    // ===== VERIFICAR CÓDIGO =====
+    const senhaBox = document.getElementById('senha-box');
+    const codigoErro = document.getElementById('codigo-erro');
+
+    
+    codigoForm.addEventListener('submit', async (e) => {
+
         e.preventDefault();
 
-        // TODO: validar o código na API usando otpLogin.getCode()
+        const btnCodigo = document.getElementById('btn-codigo');
+
+        btnCodigo.disabled = true;
+        codigoErro.textContent = '';
+
+        try {
+
+            const resposta = await fetch('/api/checar_codigo', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    codigo_inserido: otpLogin.getCode()
+                })
+            });
+
+            const dados = await resposta.json();
+
+            if (resposta.ok) {
+
+                codigoBox.style.display = 'none';
+                senhaBox.style.display = 'flex';
+
+                otpLogin.reset();
+
+            } else {
+
+                codigoErro.textContent = dados.mensagem || 'Código inválido.';
+                btnCodigo.disabled = false;
+            }
+
+        } catch (erro) {
+
+            console.error('Erro ao verificar código:', erro);
+
+            codigoErro.textContent = 'Erro de conexão com o servidor.';
+            btnCodigo.disabled = false;
+        }
     });
+
+
+    // ===== NOVA SENHA =====
+    const senhaForm = document.getElementById('senha-form');
+    const novaSenhaInput = document.getElementById('nova-senha');
+    const confirmarSenhaInput = document.getElementById('confirmar-senha');
+    const confirmarSenhaErro = document.getElementById('confirmar-senha-erro');
+    const listaRequisitosNova = document.getElementById('requisitos-nova');
+    const btnSenha = document.getElementById('btn-senha');
+
+    function validarNovaSenha() {
+        const senha = novaSenhaInput.value;
+        let tudoOk = true;
+
+        for (const [nome, teste] of Object.entries(requisitos)) {
+            const li = listaRequisitosNova.querySelector(`[data-req="${nome}"]`);
+            const icone = li.querySelector('.icone');
+            const cumprido = teste(senha);
+
+            li.classList.toggle('ok', cumprido);
+            icone.classList.toggle('ok', cumprido);
+            icone.textContent = cumprido ? '✓' : '✗';
+
+            if (!cumprido) tudoOk = false;
+        }
+        return tudoOk;
+    }
+
+    function validarConfirmacao() {
+        const confirmacao = confirmarSenhaInput.value;
+        const iguais = confirmacao === novaSenhaInput.value;
+
+        // só mostra erro depois que o usuário começou a digitar a confirmação
+        confirmarSenhaErro.textContent =
+            confirmacao && !iguais ? 'As senhas não coincidem.' : '';
+
+        return iguais && confirmacao.length > 0;
+    }
+
+    function atualizarBotaoSenha() {
+        btnSenha.disabled = !(validarNovaSenha() && validarConfirmacao());
+    }
+
+    novaSenhaInput.addEventListener('focus', () => {
+        listaRequisitosNova.classList.add('visivel');
+        validarNovaSenha();
+    });
+
+    novaSenhaInput.addEventListener('blur', () => {
+        if (validarNovaSenha()) {
+            listaRequisitosNova.classList.remove('visivel');
+        }
+    });
+
+    novaSenhaInput.addEventListener('input', atualizarBotaoSenha);
+    confirmarSenhaInput.addEventListener('input', atualizarBotaoSenha);
+
+    function voltarParaLogin() {
+        senhaForm.reset();
+        listaRequisitosNova.classList.remove('visivel');
+        confirmarSenhaErro.textContent = '';
+        validarNovaSenha();
+        btnSenha.disabled = true;
+
+        senhaBox.style.display = 'none';
+        loginBox.style.display = 'flex';
+
+        // limpa o formulário de login também
+        form.reset();
+        emailErro.textContent = '';
+        senhaErro.textContent = '';
+        validarSenha();
+        atualizarBotao();
+    }
+
+    
+    senhaForm.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+        if (!validarNovaSenha() || !validarConfirmacao()) return;
+
+        btnSenha.disabled = true;
+
+        try {
+
+            const resposta = await fetch('/api/redefinir_senha', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    senha_nova: novaSenhaInput.value
+                })
+            });
+
+            const dados = await resposta.json();
+
+            if (resposta.ok) {
+
+                mostrarToast('Senha alterada com sucesso!', 'sucesso');
+
+                voltarParaLogin();
+
+            } else {
+
+                confirmarSenhaErro.textContent =
+                    dados.mensagem || 'Não foi possível redefinir a senha.';
+
+                btnSenha.disabled = false;
+            }
+
+        } catch (erro) {
+
+            console.error('Erro ao redefinir senha:', erro);
+
+            confirmarSenhaErro.textContent = 'Erro de conexão com o servidor.';
+            btnSenha.disabled = false;
+        }
+    });
+
+
+    document.getElementById('voltar-senha').addEventListener('click', voltarParaLogin);
 
     document.getElementById('voltar-esqueci').addEventListener('click', () => {
         esqueciBox.style.display = 'none';
@@ -341,88 +542,145 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (otpLogin) otpLogin.reset();
     });
 
+        
     if (otpLogin?.resendBtn) {
-        otpLogin.resendBtn.addEventListener('click', () => {
-            fetch(base_url + '/resend', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                }
-            })
-                .then(r => r.json())
-                .then(data => {
-                    mostrarToast(data.mensagem, data.status);
-                    otpLogin.startTimer();
-                })
-                .catch(() => {
-                    mostrarToast('Erro ao reenviar código', 'erro');
+
+        otpLogin.resendBtn.addEventListener('click', async () => {
+
+            try {
+
+                const resposta = await fetch('/api/enviando_codigo', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: esqueciEmail.value.trim()
+                    })
                 });
+
+                const dados = await resposta.json();
+
+                if (!resposta.ok) {
+                    mostrarToast(dados.mensagem || 'Erro ao reenviar código.', 'erro');
+                    return;
+                }
+
+                mostrarToast('Novo código enviado!', 'sucesso');
+                otpLogin.reset();
+                otpLogin.startTimer();
+
+            } catch (erro) {
+
+                console.error('Erro ao reenviar código:', erro);
+
+                mostrarToast('Erro ao reenviar código.', 'erro');
+            }
         });
     }
 
+
     // aaa
+    // ===== HORÁRIOS DAS TURMAS =====
+
+    // Os horários são os horários de início das aulas,
+    // conforme aparecem no PDF.
+
+    const HORARIOS_MTEC_1A = [
+        { h: '07:00' },
+        { h: '07:50' },
+        { h: '08:40' },
+        { h: '09:30', fixo: 'Intervalo' },
+        { h: '09:45' },
+        { h: '10:35' },
+        { h: '11:25' },
+        { h: '12:15', fixo: 'Almoço' },
+        { h: '13:15' },
+        { h: '14:05' },
+        { h: '14:40' }
+    ];
+
+    const HORARIOS_MTEC_1B = [
+        { h: '09:45' },
+        { h: '10:20' },
+        { h: '11:10' },
+        { h: '12:00', fixo: 'Almoço' },
+        { h: '13:00' },
+        { h: '13:50' },
+        { h: '14:40' },
+        { h: '15:45' },
+        { h: '16:35' },
+        { h: '17:25' }
+    ];
+
     const HORARIOS_MANHA = [
-        { h: '07:00 - 07:50' },
-        { h: '07:50 - 08:40' },
-        { h: '08:40 - 09:30' },
-        { h: '09:30 - 09:45', fixo: 'Intervalo' },
-        { h: '09:45 - 10:35' },
-        { h: '10:35 - 11:25' },
-        { h: '11:25 - 12:15' }
+        { h: '07:00' },
+        { h: '07:50' },
+        { h: '08:40' },
+        { h: '09:30', fixo: 'Intervalo' },
+        { h: '09:45' },
+        { h: '10:35' },
+        { h: '11:25' }
     ];
 
     const HORARIOS_TARDE = [
-        { h: '12:15 - 13:00', fixo: 'Almoço' },
-        { h: '13:00 - 13:50' },
-        { h: '13:50 - 14:40' },
-        { h: '14:40 - 15:45' },
-        { h: '15:45 - 16:35' },
-        { h: '16:35 - 17:25' },
-        { h: '17:25 - 18:15' }
+        { h: '13:00' },
+        { h: '13:50' },
+        { h: '14:40' },
+        { h: '15:45' },
+        { h: '16:35' },
+        { h: '17:25' }
     ];
 
-    const DIAS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+    const DIAS = [
+        'Segunda',
+        'Terça',
+        'Quarta',
+        'Quinta',
+        'Sexta'
+    ];
 
-    // Cada uma das seis grades corresponde a uma turma/curso específico do SQL.
+    // ===== SEIS TURMAS =====
+
     const TURMAS = [
         {
-            nome: '1ª série - MTEC - Turma A (Manhã)',
+            nome: 'MTEC – 1ª Série A',
             serie: 1,
             curso: 'MTEC - Turma A',
             periodo: 'Manhã',
-            horarios: HORARIOS_MANHA
+            horarios: HORARIOS_MTEC_1A
         },
         {
-            nome: '1ª série - MTEC - Turma B (Manhã)',
+            nome: 'MTEC – 1ª Série B',
             serie: 1,
             curso: 'MTEC - Turma B',
-            periodo: 'Manhã',
-            horarios: HORARIOS_MANHA
+            periodo: 'Tarde',
+            horarios: HORARIOS_MTEC_1B
         },
         {
-            nome: '2ª série - Novotec Integrado - Turma A (Manhã)',
+            nome: 'Novotec Integrado – 2ª Série A',
             serie: 2,
             curso: 'Novotec Integrado - Turma A',
             periodo: 'Manhã',
             horarios: HORARIOS_MANHA
         },
         {
-            nome: '3ª série - Novotec Integrado - Turma A (Manhã)',
+            nome: 'Novotec Integrado – 3ª Série A',
             serie: 3,
             curso: 'Novotec Integrado - Turma A',
             periodo: 'Manhã',
             horarios: HORARIOS_MANHA
         },
         {
-            nome: '2ª série - Novotec Integrado - Turma B (Tarde)',
+            nome: 'Novotec Integrado – 2ª Série B',
             serie: 2,
             curso: 'Novotec Integrado - Turma B',
             periodo: 'Tarde',
             horarios: HORARIOS_TARDE
         },
         {
-            nome: '3ª série - Novotec Integrado - Turma B (Tarde)',
+            nome: 'Novotec Integrado – 3ª Série B',
             serie: 3,
             curso: 'Novotec Integrado - Turma B',
             periodo: 'Tarde',
@@ -439,10 +697,50 @@ document.addEventListener("DOMContentLoaded", async function () {
         sala: document.getElementById('filtro-sala')
     };
 
+        // Normaliza o horário para comparar os registros.
     function normalizarHorario(horario) {
-        return horario ? String(horario).substring(0, 5) : '';
+        if (!horario) return '';
+        return String(horario).slice(0, 5);
     }
 
+
+    // Monta as aulas de acordo com o grupo selecionado.
+    function montarAulasDoGrupo(aulas, grupoSelecionado) {
+
+        const aulasA = aulas.filter(aula =>
+            aula.grupo === 'A/Inteira'
+        );
+
+        if (grupoSelecionado !== 'B') {
+            return aulasA;
+        }
+
+        const aulasB = aulas.filter(aula =>
+            aula.grupo === 'B'
+        );
+
+        const resultado = [...aulasA];
+
+        aulasB.forEach(aulaB => {
+            const horarioB = normalizarHorario(aulaB.horario);
+
+            const indices = resultado
+                .map((aula, index) => ({ aula, index }))
+                .filter(item =>
+                    item.aula.dia_semana === aulaB.dia_semana &&
+                    normalizarHorario(item.aula.horario) === horarioB
+                )
+                .map(item => item.index);
+
+            indices.reverse().forEach(index => {
+                resultado.splice(index, 1);
+            });
+
+            resultado.push(aulaB);
+        });
+
+        return resultado;
+    }
     function preencherSelect(select, textoPadrao, opcoes) {
         if (!select) return;
 
@@ -460,33 +758,91 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
+    function obterNomeTurma(item) {
+        const turmaEncontrada = TURMAS.find(turma =>
+            Number(turma.serie) === Number(item.serie) &&
+            String(turma.curso || '').trim() === String(item.curso || '').trim() &&
+            String(turma.periodo || '').trim() === String(item.periodo || '').trim()
+        );
+
+        return turmaEncontrada
+            ? turmaEncontrada.nome
+            : `${item.serie}º ano - ${item.curso}`;
+    }
+
     function popularFiltros(horarios) {
         const turmas = new Map();
-        const grupos = new Set();
         const professores = new Map();
         const disciplinas = new Map();
         const salas = new Set();
 
         horarios.forEach(item => {
             const chaveTurma = `${item.serie}|${item.curso}`;
-            turmas.set(chaveTurma, `${item.serie}º ano - ${item.curso}`);
 
-            if (item.grupo) grupos.add(item.grupo);
-            if (item.id_professor && item.professor) professores.set(String(item.id_professor), item.professor);
-            if (item.id_materia && item.materia) disciplinas.set(String(item.id_materia), item.materia);
-            if (item.sala) salas.add(String(item.sala));
+            turmas.set(
+                chaveTurma,
+                obterNomeTurma(item)
+            );
+
+            if (item.id_professor && item.professor) {
+                professores.set(
+                    String(item.id_professor),
+                    item.professor
+                );
+            }
+
+            if (item.id_materia && item.materia) {
+                disciplinas.set(
+                    String(item.id_materia),
+                    item.materia
+                );
+            }
+
+            if (item.sala) {
+                salas.add(String(item.sala));
+            }
         });
 
-        preencherSelect(controlesFiltro.turma, 'Todas as turmas',
-            [...turmas].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')).map(([valor, texto]) => ({ valor, texto })));
-        preencherSelect(controlesFiltro.grupo, 'Todos os grupos',
-            [...grupos].sort().map(valor => ({ valor, texto: valor === 'A/Inteira' ? 'Grupo A / Classe inteira' : `Grupo ${valor}` })));
-        preencherSelect(controlesFiltro.professor, 'Todos os professores',
-            [...professores].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')).map(([valor, texto]) => ({ valor, texto })));
-        preencherSelect(controlesFiltro.disciplina, 'Todas as disciplinas',
-            [...disciplinas].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')).map(([valor, texto]) => ({ valor, texto })));
-        preencherSelect(controlesFiltro.sala, 'Todas as salas',
-            [...salas].sort().map(valor => ({ valor, texto: valor })));
+        preencherSelect(
+            controlesFiltro.turma,
+            'Todas as turmas',
+            [...turmas]
+                .sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'))
+                .map(([valor, texto]) => ({ valor, texto }))
+        );
+
+        preencherSelect(
+            controlesFiltro.grupo,
+            'Todos os grupos',
+            [
+                { valor: 'A/Inteira', texto: 'Grupo A ou Classe Inteira' },
+                { valor: 'B', texto: 'Grupo B' }
+            ]
+        );
+
+        preencherSelect(
+            controlesFiltro.professor,
+            'Todos os professores',
+            [...professores]
+                .sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'))
+                .map(([valor, texto]) => ({ valor, texto }))
+        );
+
+        preencherSelect(
+            controlesFiltro.disciplina,
+            'Todas as disciplinas',
+            [...disciplinas]
+                .sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'))
+                .map(([valor, texto]) => ({ valor, texto }))
+        );
+
+        preencherSelect(
+            controlesFiltro.sala,
+            'Todas as salas',
+            [...salas]
+                .sort()
+                .map(valor => ({ valor, texto: valor }))
+        );
     }
 
     async function buscarHorarios(filtros = {}) {
@@ -514,145 +870,194 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
+    
     function criarGrade(turma, indice, horariosBanco) {
         const table = document.createElement('table');
+
         table.className = 'grade';
         table.dataset.turma = turma.nome;
 
+        // ===== TÍTULO =====
         const caption = document.createElement('caption');
         caption.className = 'select-grupo';
 
         caption.appendChild(
-            document.createTextNode(
-                `${turma.nome}`
-            )
+            document.createTextNode(`${turma.nome} `)
         );
 
         const divGrupo = document.createElement('div');
         divGrupo.className = 'secao-busca-grupo';
+
         const selectId = `escolher-grupo-${indice}`;
+
         const label = document.createElement('label');
         label.htmlFor = selectId;
         label.textContent = 'Grupo';
+
         const select = document.createElement('select');
         select.id = selectId;
         select.name = selectId;
 
-        [['', 'Todos os grupos'], ['A/Inteira', 'Grupo A / Classe inteira'], ['B', 'Grupo B']].forEach(([valor, texto]) => {
+        [
+            ['TODOS', 'Todos os grupos'],
+            ['A/Inteira', 'Grupo A'],
+            ['B', 'Grupo B']
+        ].forEach(([valor, texto]) => {
             const opcao = document.createElement('option');
             opcao.value = valor;
             opcao.textContent = texto;
             select.appendChild(opcao);
         });
 
+        select.value = 'TODOS';
+
         divGrupo.append(label, select);
         caption.appendChild(divGrupo);
         table.appendChild(caption);
 
+        // ===== CABEÇALHO =====
         const thead = document.createElement('thead');
         const trHead = document.createElement('tr');
+
         ['Horário', ...DIAS].forEach(texto => {
             const th = document.createElement('th');
             th.textContent = texto;
             trHead.appendChild(th);
         });
+
         thead.appendChild(trHead);
         table.appendChild(thead);
 
+        // ===== CORPO =====
         const tbody = document.createElement('tbody');
         table.appendChild(tbody);
 
+        function obterChaveHorario(item) {
+            return `${item.dia_semana}|${normalizarHorario(item.horario)}`;
+        }
+
         function preencherTabela() {
             tbody.innerHTML = '';
+
+            // Busca somente os horários da turma atual.
             const horariosDaTurma = horariosBanco.filter(item =>
                 Number(item.serie) === Number(turma.serie) &&
                 String(item.curso || '').trim() === turma.curso &&
                 String(item.periodo || '').trim() === turma.periodo
             );
 
-            const grupoSelecionado = select.value;
+            const horariosA = horariosDaTurma.filter(item =>
+                String(item.grupo || '').trim() === 'A/Inteira'
+            );
 
-            let horariosFiltrados = horariosDaTurma;
+            const horariosB = horariosDaTurma.filter(item =>
+                String(item.grupo || '').trim() === 'B'
+            );
 
-            if (grupoSelecionado === 'A/Inteira') {
+            let horariosFiltrados = [];
 
-                horariosFiltrados = horariosDaTurma.filter(item =>
-                    String(item.grupo || '').trim() === 'A/Inteira'
+            if (select.value === 'A/Inteira') {
+
+                // Grupo A: somente os registros A/Inteira.
+                horariosFiltrados = [...horariosA];
+
+            } else if (select.value === 'B') {
+
+                // Grupo B: começa com as aulas compartilhadas.
+                horariosFiltrados = [...horariosA];
+
+                // Identifica os horários que possuem aulas próprias do B.
+                const horariosSubstituidos = new Set(
+                    horariosB.map(obterChaveHorario)
                 );
 
-            } else if (grupoSelecionado === 'B') {
-
-                const horariosBase = horariosDaTurma.filter(item =>
-                    String(item.grupo || '').trim() === 'A/Inteira'
+                // Remove as aulas A apenas nos horários substituídos pelo B.
+                horariosFiltrados = horariosFiltrados.filter(item =>
+                    !horariosSubstituidos.has(obterChaveHorario(item))
                 );
 
-                const horariosB = horariosDaTurma.filter(item =>
-                    String(item.grupo || '').trim() === 'B'
-                );
+                // Adiciona todas as aulas específicas do B.
+                horariosFiltrados.push(...horariosB);
 
-                horariosFiltrados = horariosBase.filter(base => {
-                    const possuiSubstituicao = horariosB.some(item =>
-                        item.dia_semana === base.dia_semana &&
-                        String(item.horario).substring(0, 5) ===
-                        String(base.horario).substring(0, 5)
-                    );
+            } else {
 
-                    return !possuiSubstituicao;
-                }).concat(horariosB);
+                // Todos os grupos: apresenta os registros dos dois grupos.
+                // Não utiliza Map por horário, pois isso poderia apagar
+                // aulas diferentes ou professores compartilhando o horário.
+                horariosFiltrados = [...horariosA, ...horariosB];
             }
 
-            console.log('TURMA:', turma.nome);
-            console.log('GRUPO SELECIONADO:', grupoSelecionado || 'Todos');
-
-            console.table(horariosFiltrados.map(item => ({
-                grupo: item.grupo,
-                dia: item.dia_semana,
-                horario: item.horario,
-                disciplina: item.materia,
-                professor: item.professor
-            })));
-
-            const converterMinutos = horario => {
-                const [hora, minuto] = horario.split(':').map(Number);
-                return hora * 60 + minuto;
-            };
-
+            // ===== HORÁRIOS DAS LINHAS =====
             const linhasGrade = [...turma.horarios];
-            const horariosExistentes = new Set(linhasGrade.map(linha => linha.h.split(' - ')[0]));
 
+            const horariosExistentes = new Set(
+                linhasGrade.map(linha => normalizarHorario(linha.h))
+            );
+
+            // Inclui horários adicionais cadastrados no banco.
             horariosDaTurma.forEach(item => {
                 const horario = normalizarHorario(item.horario);
+
                 if (horario && !horariosExistentes.has(horario)) {
-                    linhasGrade.push({ h: horario, extra: true });
+                    linhasGrade.push({
+                        h: horario,
+                        extra: true
+                    });
+
                     horariosExistentes.add(horario);
                 }
             });
 
-            linhasGrade.sort((a, b) => converterMinutos(a.h.split(' - ')[0]) - converterMinutos(b.h.split(' - ')[0]));
+            // Organiza cronologicamente.
+            linhasGrade.sort((a, b) => {
+                const converterMinutos = horario => {
+                    const [hora, minuto] = horario.split(':').map(Number);
+                    return hora * 60 + minuto;
+                };
 
+                return converterMinutos(a.h) - converterMinutos(b.h);
+            });
+
+            // ===== CRIAÇÃO DAS LINHAS =====
             linhasGrade.forEach(linha => {
                 const tr = document.createElement('tr');
+
                 const tdHora = document.createElement('td');
                 tdHora.textContent = linha.h;
-                if (linha.extra) tdHora.classList.add('horario-extra');
+
+                if (linha.extra) {
+                    tdHora.classList.add('horario-extra');
+                }
+
                 tr.appendChild(tdHora);
 
+                // Intervalo e almoço.
                 if (linha.fixo) {
                     const td = document.createElement('td');
                     td.colSpan = DIAS.length;
                     td.textContent = linha.fixo;
                     tr.appendChild(td);
+
                 } else {
-                    const horarioLinha = normalizarHorario(linha.h.split(' - ')[0]);
+                    const horarioLinha = normalizarHorario(linha.h);
+
                     DIAS.forEach(dia => {
                         const td = document.createElement('td');
-                        const nomeDia = dia + '-feira';
+                        const nomeDia = `${dia}-feira`;
+
                         const aulas = horariosFiltrados.filter(item =>
-                            item.dia_semana === nomeDia && normalizarHorario(item.horario) === horarioLinha
+                            item.dia_semana === nomeDia &&
+                            normalizarHorario(item.horario) === horarioLinha
                         );
 
                         aulas.forEach((aula, index) => {
-                            if (index > 0) td.appendChild(document.createElement('br'));
+                            if (index > 0) {
+                                td.appendChild(document.createElement('br'));
+                            }
+
+                            // Identifica o grupo quando a visualização
+                            // está mostrando todos os grupos.
+                            
 
                             const disciplina = document.createElement('span');
                             disciplina.textContent = aula.materia || 'Disciplina';
@@ -660,7 +1065,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                             const professor = document.createElement('span');
                             professor.className = 'professor-aula';
-                            professor.textContent = aula.professor || 'Professor não definido';
+                            professor.textContent =
+                                aula.professor || 'Professor não definido';
+
                             td.appendChild(professor);
 
                             const sala = document.createElement('span');
@@ -670,6 +1077,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                             if (!aula.sala) {
                                 sala.title = 'Sala não cadastrada';
                             }
+
                             td.appendChild(sala);
 
                             if (index === 0) {
@@ -679,47 +1087,76 @@ document.addEventListener("DOMContentLoaded", async function () {
                                 td.dataset.idHorario = aula.id_horario;
                             }
                         });
+
                         tr.appendChild(td);
                     });
                 }
+
                 tbody.appendChild(tr);
             });
         }
 
         select.addEventListener('change', preencherTabela);
+
         preencherTabela();
+
         return table;
     }
+
 
     function renderizarTabelaPesquisa(horarios) {
         gradesContainer.innerHTML = '';
 
         if (!horarios.length) {
             const mensagem = document.createElement('p');
+
             mensagem.className = 'sem-resultados';
-            mensagem.textContent = 'Nenhum horário encontrado para os filtros selecionados.';
+            mensagem.textContent =
+                'Nenhum horário encontrado para os filtros selecionados.';
+
             gradesContainer.appendChild(mensagem);
             return;
         }
 
         const tabela = document.createElement('table');
         tabela.className = 'grade tabela-pesquisa';
+
         const thead = document.createElement('thead');
         const cabecalho = document.createElement('tr');
-        ['Turma', 'Grupo', 'Dia', 'Aula', 'Horário', 'Disciplina', 'Professor', 'Sala'].forEach(titulo => {
+
+        [
+            'Turma',
+            'Grupo',
+            'Dia',
+            'Aula',
+            'Horário',
+            'Disciplina',
+            'Professor',
+            'Sala'
+        ].forEach(titulo => {
             const th = document.createElement('th');
             th.textContent = titulo;
             cabecalho.appendChild(th);
         });
+
         thead.appendChild(cabecalho);
         tabela.appendChild(thead);
 
         const tbody = document.createElement('tbody');
+
         horarios.forEach(item => {
             const tr = document.createElement('tr');
+
+            const grupoTexto =
+                item.grupo === 'A/Inteira'
+                    ? 'Grupo A ou Classe Inteira'
+                    : item.grupo === 'B'
+                        ? 'Grupo B'
+                        : '—';
+
             const valores = [
-                `${item.serie}º ano - ${item.curso}`,
-                item.grupo || '—',
+                obterNomeTurma(item),
+                grupoTexto,
                 item.dia_semana || '—',
                 item.aula ?? '—',
                 normalizarHorario(item.horario) || '—',
@@ -727,13 +1164,16 @@ document.addEventListener("DOMContentLoaded", async function () {
                 item.professor || 'Professor não definido',
                 item.sala || '—'
             ];
+
             valores.forEach(valor => {
                 const td = document.createElement('td');
                 td.textContent = String(valor);
                 tr.appendChild(td);
             });
+
             tbody.appendChild(tr);
         });
+
         tabela.appendChild(tbody);
         gradesContainer.appendChild(tabela);
     }
@@ -1186,16 +1626,4 @@ fecharSeguranca?.addEventListener('click', () => {
         }
     });
 
-    //botão para fechar os modais
-    const closeButtons = document.querySelectorAll('.btn-close-modal');
-
-    closeButtons.forEach(button => {
-        button.addEventListener('click', () => {//=> : é uma função anônima, mais curta que function(){} e mantém o contexto de 'this'
-            const modalId = button.getAttribute('data-modal');
-            const modal = document.getElementById(modalId);
-            if (modal) {  // ← proteção
-                modal.close();
-            }
-        });
-    });
 });
