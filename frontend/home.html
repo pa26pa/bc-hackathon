@@ -154,6 +154,16 @@
                 <label for="editar-professor">Professor</label>
                 <input type="text" id="editar-professor" required>
 
+                <div class="campo-edicao">
+                    <label for="editar-sala">Sala</label>
+                    <input
+                        type="text"
+                        id="editar-sala"
+                        name="sala"
+                        placeholder="Ex: Laboratório 01"
+                    >
+                </div>
+
                 <button type="submit" id="salvar-edicao-aula">Salvar</button>
             </form>
         </dialog>
@@ -161,60 +171,43 @@
         <!-- BUSCA -->
         <div class="busca-box">
             <div class="secao-busca">
-                <label for="busca-turma">Turma</label>
-                <input list="lista-turma" id="busca-turma" name="busca-turma" placeholder="Todas">
-                <datalist id="lista-turma">
-                    <option value="1º ano - Manhã (1DA)">
-                    <option value="2º ano - Manhã (2DA)">
-                    <option value="3º ano - Manhã (3DA)">
-                    <option value="1º ano - Tarde (1DB)">
-                    <option value="2º ano - Tarde (2DB)">
-                    <option value="3º ano - Tarde (3DB)">
-                </datalist>
+                <label for="filtro-turma">Turma</label>
+                <select id="filtro-turma">
+                    <option value="">Todas as turmas</option>
+                </select>
             </div>
+
             <div class="secao-busca">
-                <label for="busca-grupo">Grupo</label>
-                <input list="lista-grupo" id="busca-grupo" name="busca-grupo" placeholder="Todos">
-                <datalist id="lista-grupo">
-                    <option value="Grupo A">
-                    <option value="Grupo B">
-                </datalist>
+                <label for="filtro-grupo">Grupo</label>
+                <select id="filtro-grupo">
+                    <option value="">Todos os grupos</option>
+                </select>
             </div>
+
             <div class="secao-busca">
-                <label for="busca-prof">Professor</label>
-                <input list="lista-prof" id="busca-prof" name="busca-prof" placeholder="Todos">
-                <datalist id="lista-prof">
-                    <option value="Aleteia V. M. Souto">
-                    <option value="Alícia V. Lima">
-                    <option value="Andre S. Maia">
-                    <option value="Bruno Cano">
-                    <option value="Cassio M. L. de Aquino">
-                    <option value="Célide T. da Silva">
-                </datalist>
+                <label for="filtro-professor">Professor</label>
+                <select id="filtro-professor">
+                    <option value="">Todos os professores</option>
+                </select>
             </div>
+
             <div class="secao-busca">
-                <label for="busca-discip">Disciplina</label>
-                <input list="lista-discip" id="busca-discip" name="busca-discip" placeholder="Todas">
-                <datalist id="lista-discip">
-                    <option value="Matemática">
-                    <option value="Português">
-                    <option value="Física">
-                    <option value="Química">
-                    <option value="Biologia">
-                </datalist>
+                <label for="filtro-disciplina">Disciplina</label>
+                <select id="filtro-disciplina">
+                    <option value="">Todas as disciplinas</option>
+                </select>
             </div>
+
             <div class="secao-busca">
-                <label for="busca-sala">Sala</label>
-                <input list="lista-sala" id="busca-sala" name="busca-sala" placeholder="Todas">
-                <datalist id="lista-sala">
-                    <option value="Sala 101">
-                    <option value="Sala 102">
-                    <option value="Sala 103">
-                </datalist>
+                <label for="filtro-sala">Sala</label>
+                <select id="filtro-sala">
+                    <option value="">Todas as salas</option>
+                </select>
             </div>
-            <div class="secao-busca">
-                <button type="button" class="btn-limpar" id="btn-limpar">Limpar</button>
-                <button type="button" class="btn-consultar" id="btn-consultar">Consultar</button>
+
+            <div class="secao-busca botoes-busca">
+                <button type="button" id="btn-consultar">Consultar</button>
+                <button type="button" id="btn-limpar">Limpar</button>
             </div>
         </div>
 
