@@ -119,8 +119,9 @@ body {
 }
 .requisitos.visivel { display: block; }
 
-.requisitos li, .requisitos span { color: red;font-size: 0.8em;}
-.requisitos li.ok, .requisitos span.ok { color: green;font-size: 0.8em;}
+.requisitos li { color: red;font-size: 0.8em;}
+.requisitos li.ok { color: green;font-size: 0.8em;}
+.requisitos .icone { color: inherit; }
 
 .esqueci-a-senha {
     text-decoration: none;
@@ -146,6 +147,7 @@ body {
 }
 .btn-login:hover {
     background-color: #1F1250;
+    color: #F1ECFD;
     cursor: pointer;
 }
 
