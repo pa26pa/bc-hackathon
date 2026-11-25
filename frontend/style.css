@@ -112,8 +112,9 @@ body {
 }
 .requisitos.visivel { display: block; }
 
-.requisitos li, .requisitos span { color: red;font-size: 0.8em;}
-.requisitos li.ok, .requisitos span.ok { color: green;font-size: 0.8em;}
+.requisitos li { color: red;font-size: 0.8em;}
+.requisitos li.ok { color: green;font-size: 0.8em;}
+.requisitos .icone { color: inherit; }
 
 .esqueci-a-senha {
     text-decoration: none;
@@ -127,7 +128,7 @@ body {
     justify-content: center;
     width: 100%;
     border-radius: 30px;
-    border: 2px solid var(--color3);
+    border: 2px solid #1F1250;
     background-color: #8A52F0;
     height: max-content;
     padding: 5px;
@@ -136,7 +137,7 @@ body {
     font-size: 1.2em;
 }
 .btn-login:hover {
-    background-color: var(--color3);
+    background-color: #1F1250;
     color: #F1ECFD;
     cursor: pointer;
 }
@@ -207,7 +208,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill {
     -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-    -webkit-text-fill-color: var(--color8) !important;
+    -webkit-text-fill-color: #000000 !important;
     transition: background-color 9999s ease-in-out 0s;
 }
 

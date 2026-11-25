@@ -66,12 +66,6 @@ document.addEventListener("DOMContentLoaded", async function() {
             li.classList.toggle('ok', cumprido);
             icone.textContent = cumprido ? '✓' : '✗';
 
-            if (icone === '✓') {
-                icone.style.color = 'green';
-            } else {
-                icone.style.color = 'red';
-            }
-
             if (!cumprido) tudoOk = false;
         }
 
