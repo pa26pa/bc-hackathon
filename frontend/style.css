@@ -831,3 +831,71 @@ letter-spacing: 1px;
     border: 2px solid var(--color6);
     box-shadow: 0 0 5px 5px #909FF1;
 }
+
+
+/* ===== ACABAMENTO DO MODAL DE HISTÓRICO ===== */
+
+.modal-historico {
+    border: 1px solid var(--color8);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color7) transparent;
+}
+
+.modal-historico h1 {
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+}
+
+.modal-historico table {
+    overflow: hidden;
+}
+
+#historico-table td {
+    padding: 14px 12px;
+    line-height: 1.5;
+}
+
+#historico-table td:nth-child(2) {
+    overflow-wrap: anywhere;
+}
+
+#historico-table tr {
+    transition: transform 0.2s ease;
+}
+
+#historico-table tr:hover {
+    transform: translateY(-2px);
+}
+
+.tag-acao {
+    padding: 5px 11px;
+    letter-spacing: 0.2px;
+}
+
+#historico-empty {
+    padding: 35px 15px;
+    border-radius: 18px;
+    background: var(--color2);
+    margin-top: 15px;
+}
+
+@media (max-width: 550px) {
+    .modal-historico {
+        padding: 20px 14px;
+        width: 95vw;
+    }
+
+    .modal-historico h1 {
+        font-size: 1.5em;
+    }
+
+    #historico-table td {
+        padding: 10px 6px;
+        font-size: 0.8em;
+    }
+
+    .tag-acao {
+        white-space: normal;
+        text-align: center;
+    }
+}

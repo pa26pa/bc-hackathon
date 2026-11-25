@@ -1450,9 +1450,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     async function carregarHistorico() {
-
         try {
-            const res = await fetch(base_url + '/historico', {
+            const resposta = await fetch(base_url + '/historico', {
                 method: 'GET',
                 credentials: 'same-origin',
                 headers: {
@@ -1460,31 +1459,21 @@ document.addEventListener("DOMContentLoaded", async function () {
                 }
             });
 
-            const data = await res.json();
+            if (!resposta.ok) {
+                throw new Error('Erro ao buscar histórico.');
+            }
 
-            historico = data.historico || [];
+            const dados = await resposta.json();
 
-        } catch {
+            historico = dados.historico || [];
+
+        } catch (erro) {
+            console.error('Erro ao carregar histórico:', erro);
             historico = [];
-            mostrarToast('Erro ao carregar histórico', 'erro');
+            mostrarToast('Erro ao carregar histórico.', 'erro');
         }
 
         renderHistorico();
-    }
-
-    if (modalHistorico) {
-
-        renderHistorico();
-
-        fecharHistorico?.addEventListener('click', () => {
-            modalHistorico.close();
-        });
-
-        modalHistorico.addEventListener('click', e => {
-            if (e.target === modalHistorico) {
-                modalHistorico.close();
-            }
-        });
     }
 
     // ===== ABRIR MODAIS =====

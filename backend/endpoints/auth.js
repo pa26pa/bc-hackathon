@@ -5,6 +5,7 @@ import enviar_email from '../middleware/email_sender.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import verificarToken from '../middleware/check.js';
+import { registrarHistorico } from '../middleware/historico.js';
 
 const router = express.Router();
 
@@ -403,10 +404,16 @@ router.post('/redefinir_senha', verificarResetToken, async (req, res) => {
         );
 
         if (resultado.affectedRows === 0) {
+            
             return res.status(404).json({
                 mensagem: 'Usuário não encontrado.'
             });
         }
+
+        await registrarHistorico(
+            'senha',
+            'A senha da conta foi redefinida.'
+        );
 
         res.clearCookie('resetToken', {
             httpOnly: true,
@@ -430,36 +437,67 @@ router.post('/redefinir_senha', verificarResetToken, async (req, res) => {
 });
 
 
+
 router.post('/atualizar_email_senha', verificarToken, async (req, res) => {
-    const { email, senha } = req.body;
-    const email_antigo = req.email;
-
-    const senha_pronta = await bcrypt.hash(senha, 10);
-
     try {
-        const resultado = connection.query(
-            'update usuario set email = ?, senha = ?, status_user = "admim" where email = ?',
+        const { email, senha } = req.body;
+        const email_antigo = req.email;
+
+        if (!email || !senha) {
+            return res.status(400).json({
+                mensagem: 'Informe o novo e-mail e a senha.'
+            });
+        }
+
+        const senha_pronta = await bcrypt.hash(senha, 10);
+
+        const [resultado] = await connection.query(
+            `UPDATE usuario
+             SET email = ?, senha = ?, status_user = "admim"
+             WHERE email = ?`,
             [email, senha_pronta, email_antigo]
         );
 
+        if (resultado.affectedRows === 0) {
+            return res.status(404).json({
+                mensagem: 'Usuário não encontrado ou dados inalterados.'
+            });
+        }
+
+        await registrarHistorico(
+            'email',
+            'O e-mail da conta foi alterado.'
+        );
+
+        await registrarHistorico(
+            'senha',
+            'A senha da conta foi alterada.'
+        );
+
         const token = jwt.sign(
-            { status: 'admim' },
+            {
+                id: req.usuarioId,
+                email: email,
+                status: 'admim'
+            },
             process.env.JWT_SECRET,
             { expiresIn: '5h' }
         );
 
-        res.status(200).json({
-            mensagem: 'Email e senha atualizados corretamente',
-            token: token
+        return res.status(200).json({
+            mensagem: 'E-mail e senha atualizados corretamente!',
+            token
         });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            mensagem: 'Erro interno'
+        console.error('ERRO AO ATUALIZAR CONTA:', error);
+
+        return res.status(500).json({
+            mensagem: 'Erro interno ao atualizar a conta.'
         });
     }
 });
+
 
 router.post('/logout', (req,res) => {
     try {
@@ -481,6 +519,35 @@ router.post('/logout', (req,res) => {
     }
 
 });
+
+
+// ===== HISTÓRICO DE ALTERAÇÕES =====
+router.get('/historico', verificarToken, async (req, res) => {
+    try {
+        const [historico] = await connection.query(`
+            SELECT
+                id_mudanca,
+                status_modificacao AS tipo,
+                modificacao AS descricao,
+                DATE_FORMAT(quando, '%d/%m/%Y %H:%i') AS data
+            FROM historico
+            ORDER BY quando DESC, id_mudanca DESC
+        `);
+
+        return res.status(200).json({
+            mensagem: 'Histórico carregado com sucesso!',
+            historico
+        });
+
+    } catch (error) {
+        console.error('ERRO AO CARREGAR HISTÓRICO:', error);
+
+        return res.status(500).json({
+            mensagem: 'Erro ao carregar o histórico.'
+        });
+    }
+});
+
 
 // Lari, faz o codigo antes dele Não depois
 export default router;
