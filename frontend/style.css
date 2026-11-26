@@ -966,210 +966,125 @@ header button:focus {
 }
 
 
-/* MODAL DE SEGURANÇA */
+/* MODAL DE SEGURANÇA (mesmo padrão dos demais modais e formulários) */
 
 .modal-seguranca {
-    position: fixed;
-    inset: 0;
-    margin: auto;
-    width: min(850px, 92vw);
+    border: 1px solid var(--color8);
+    border-radius: 30px;
+    padding: 30px;
+    width: min(450px, 92vw);
     max-height: 90vh;
     overflow-y: auto;
-    padding: 32px;
-    border: 2px solid var(--color8);
-    border-radius: 28px;
-    background: var(--color5);
+    margin: auto;
+    background-color: var(--color5);
     color: var(--color10);
-    box-shadow: 0 15px 45px rgba(31, 18, 80, 0.25);
-}
-
-.modal-seguranca[open] {
-    display: block;
+    box-shadow: 0 8px 15px -4px rgba(31, 18, 80, 0.4);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color7) transparent;
 }
 
 .modal-seguranca::backdrop {
-    background: rgba(10, 12, 30, 0.65);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
 }
 
-/* CABEÇALHO */
-
-.seguranca-cabecalho {
-    padding: 5px 45px 22px 0;
-    border-bottom: 2px solid var(--color8);
-}
-
-.seguranca-cabecalho h1 {
+.modal-seguranca h1 {
+    font-size: 2em;
+    text-align: center;
     color: var(--color3);
-    font-size: 1.8rem;
-    font-weight: 700;
+    letter-spacing: -1px;
 }
 
-.seguranca-cabecalho p {
-    color: var(--color6);
-    font-size: 0.9rem;
+.seguranca-subtitulo {
+    text-align: center;
+    font-size: 0.9em;
+    margin: 4px 0 22px;
 }
 
-/* ÍCONES */
-
-.seguranca-icone,
-.seguranca-card-icone {
-    background: var(--color2);
+.seguranca-secao h2 {
+    font-size: 1.3em;
     color: var(--color3);
-    border: 1px solid var(--color8);
 }
 
-/* CARTÕES */
-
-.seguranca-conteudo {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-    margin-top: 25px;
+.seguranca-desc {
+    font-size: 0.85em;
+    margin: 2px 0 12px;
 }
 
-.seguranca-card {
-    padding:24px;
-    border: 1px solid var(--color8);
-    border-radius: 22px;
-    background: var(--color1);
-    box-shadow: 0 5px 15px rgba(31, 18, 80, 0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
+.seguranca-divisor {
+    border: none;
+    border-top: 2px solid var(--color8);
+    margin: 24px 0;
 }
 
-.seguranca-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 9px 22px rgba(31, 18, 80, 0.13);
+.form-seguranca {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
 }
 
-.seguranca-card-titulo h2 {
-    color: var(--color3);
-    font-size: 1.15rem;
+.form-seguranca label {
+    font-weight: bold;
 }
 
-/* CAMPOS */
-
-.campo-seguranca {
-    gap: 8px;
-}
-
-.campo-seguranca label {
-    color: var(--color3);
-    font-weight: 600;
-}
-
-.campo-seguranca input {
-    padding: 12px 14px;
+.form-seguranca input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0 10px;
     border: 2px solid var(--color3);
-    border-radius: 50px;
-    background: var(--color5);
-    color: var(--color10);
-    transition: 0.2s ease;
-    margin-bottom: 7px;
-    margin-top: 7px;
+    border-radius: 20px;
+    outline: none;
+    font-size: 0.9em;
+    background-color: #FFFFFF;
+    color: var(--color3);
 }
 
-.campo-seguranca input:focus {
-    border-color: var(--color3);
-    box-shadow: 0 0 0 3px rgba(138, 82, 240, 0.15);
+.form-seguranca input:focus {
+    border: 2px solid var(--color6);
+    box-shadow: 0 0 5px 5px #909FF1;
 }
 
-
-/* Botao X do modal de seguranca */
-.fechar-seguranca {
-    position: absolute;
-    top: 18px;
-    right: 20px;
-    left: auto;
-
-    width: 35px;
-    height: 35px;
-
+.btn-seguranca {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border: none;
-    border-radius: 8px;
-
-    background: transparent;
-    color: var(--color10);
-
-    font-size: 25px;
-    cursor: pointer;
-
-    transition: none;
-}
-
-.fechar-seguranca:hover {
-    background: transparent;
-    transform: none;
-}
-
-/* Remove os efeitos dos cards */
-.seguranca-card,
-.seguranca-card:hover {
-    transform: none;
-    box-shadow: none;
-    filter: none;
-}
-
-.seguranca-card {
-    transition: none;
-}
-@media (max-width: 700px) {
-    .modal-seguranca {
-        width: 94vw;
-        max-height: 92vh;
-        padding: 22px;
-        border-radius: 22px;
-    }
-
-    .seguranca-conteudo {
-        grid-template-columns: 1fr;
-    }
-
-    .seguranca-card {
-        padding: 18px;
-    }
-
-    .seguranca-cabecalho h1 {
-        font-size: 1.45rem;
-    }
-}
-
-/* Botoes de salvar do modal de seguranca */
-.form-seguranca button {
     width: 100%;
-    padding: 12px 18px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: var(--color6);
-    color: var(--color1);
-
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-
+    margin-top: 6px;
+    padding: 5px;
+    border-radius: 30px;
+    border: 2px solid #1F1250;
+    background-color: #8A52F0;
+    color: #F1ECFD;
+    font-size: 1.1em;
+    font-weight: bold;
     cursor: pointer;
-
-    transition: background 0.2s ease, transform 0.2s ease;
-    margin-top: 5px;
+    transition: all 0.3s ease-in-out;
 }
 
-
-
-.form-seguranca button:hover {
-    background: var(--color9);
-    transform: translateY(-2px);
+.btn-seguranca:hover:not(:disabled) {
+    background-color: #1F1250;
 }
 
-.form-seguranca button:active {
-    transform: scale(0.98);
-    outline: none;
+.btn-seguranca:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
+
+/* Mensagem de sucesso (par do .erro) */
+
+.sucesso {
+    color: green;
+    font-size: 0.7em;
+    text-align: center;
+}
+
+.sucesso:empty {
+    display: none;
+}
+
+[data-tema="escuro"] .sucesso {
+    color: #4ade80;
+}
+
 .select-grupo select:focus {
     border: 2px solid var(--color6);
     box-shadow: 0 0 5px 5px #909FF1;
@@ -1241,4 +1156,42 @@ header button:focus {
         white-space: normal;
         text-align: center;
     }
+}
+
+
+/* ===== EDIÇÃO DE AULA ===== */
+
+.editar-aula-info {
+    text-align: center;
+    font-size: 0.85em;
+    margin: -10px 0 15px;
+}
+
+.editar-aula-info:empty {
+    display: none;
+}
+
+#form-editar-aula .erro {
+    margin-bottom: 8px;
+}
+
+#salvar-edicao-aula {
+    cursor: pointer;
+}
+
+#salvar-edicao-aula:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Cada aula dentro da célula (permite editar A e B separadamente) */
+
+.grade .aula-item {
+    cursor: pointer;
+}
+
+.grade .aula-item + .aula-item {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--color8);
 }

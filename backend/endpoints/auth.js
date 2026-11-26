@@ -9,6 +9,68 @@ import { registrarHistorico } from '../middleware/historico.js';
 
 const router = express.Router();
 
+// ===== AUXILIARES =====
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Erro com status HTTP, usado para devolver mensagens de validação ao front.
+class ErroRequisicao extends Error {
+    constructor(mensagem, status = 400) {
+        super(mensagem);
+        this.status = status;
+    }
+}
+
+// Mesmas regras de senha exibidas no front-end.
+function senhaForte(senha) {
+    return (
+        typeof senha === 'string' &&
+        senha.length >= 8 &&
+        /[A-Z]/.test(senha) &&
+        /\d/.test(senha) &&
+        /[^A-Za-z0-9]/.test(senha)
+    );
+}
+
+// Executa várias queries na mesma transação (alteração + histórico).
+async function comTransacao(funcao) {
+    const banco = await connection.getConnection();
+
+    try {
+        await banco.beginTransaction();
+        const resultado = await funcao(banco);
+        await banco.commit();
+        return resultado;
+    } catch (error) {
+        await banco.rollback();
+        throw error;
+    } finally {
+        banco.release();
+    }
+}
+
+// Grava o JWT da sessão no cookie HttpOnly (mesmas opções do login).
+function gravarCookieSessao(res, usuario) {
+    const token = jwt.sign(
+        {
+            id: usuario.id_usuario,
+            email: usuario.email,
+            status: usuario.status_user
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '5h' }
+    );
+
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 5 * 60 * 60 * 1000,
+        path: '/'
+    });
+}
+
+
 router.post('/login', async (req, res) => {
 
     try {
@@ -185,6 +247,178 @@ router.get('/horarios', verificarToken, async (req, res) => {
     } catch (error) {
         console.error('ERRO REAL NA ROTA /horarios:', error);
         return res.status(500).json({ mensagem: 'Erro ao requisitar dados' });
+    }
+});
+
+
+
+// Listas usadas nas sugestões do modal de edição de aula.
+router.get('/opcoes_edicao', verificarToken, async (req, res) => {
+    try {
+        const [materias] = await connection.query(
+            'SELECT nome FROM materias ORDER BY nome'
+        );
+
+        const [professores] = await connection.query(
+            'SELECT nome_completo AS nome FROM professores ORDER BY nome_completo'
+        );
+
+        return res.status(200).json({
+            materias: materias.map(m => m.nome),
+            professores: professores.map(p => p.nome)
+        });
+
+    } catch (error) {
+        console.error('ERRO AO CARREGAR OPÇÕES DE EDIÇÃO:', error);
+        return res.status(500).json({ mensagem: 'Erro ao carregar as opções.' });
+    }
+});
+
+
+// Edita disciplina, professor e sala de uma aula e registra no histórico.
+router.put('/horarios/:id', verificarToken, async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new ErroRequisicao('Aula inválida.');
+        }
+
+        const disciplina = String(req.body.disciplina ?? '').trim();
+        const professor = String(req.body.professor ?? '').trim();
+        const sala = String(req.body.sala ?? '').trim();
+
+        if (!disciplina) {
+            throw new ErroRequisicao('Informe a disciplina.');
+        }
+
+        if (sala.length > 100) {
+            throw new ErroRequisicao('A sala deve ter no máximo 100 caracteres.');
+        }
+
+        const resposta = await comTransacao(async (banco) => {
+
+            const [aulas] = await banco.query(`
+                SELECT
+                    h.id_horario,
+                    h.dia_semana,
+                    h.horario,
+                    h.sala,
+                    h.materia AS id_materia,
+                    h.professor AS id_professor,
+                    m.nome AS materia,
+                    p.nome_completo AS professor,
+                    t.serie,
+                    t.curso,
+                    t.grupo
+                FROM horarios h
+                INNER JOIN turmas t ON h.turma = t.id_turma
+                INNER JOIN materias m ON h.materia = m.id_materia
+                LEFT JOIN professores p ON h.professor = p.id_professor
+                WHERE h.id_horario = ?
+            `, [id]);
+
+            if (aulas.length === 0) {
+                throw new ErroRequisicao('Aula não encontrada.', 404);
+            }
+
+            const atual = aulas[0];
+
+            // Disciplina: precisa existir na tabela materias.
+            const [materias] = await banco.query(
+                'SELECT id_materia, nome FROM materias WHERE nome = ?',
+                [disciplina]
+            );
+
+            if (materias.length === 0) {
+                throw new ErroRequisicao(
+                    `Disciplina "${disciplina}" não encontrada. Escolha uma da lista.`
+                );
+            }
+
+            // Professor: opcional, mas se informado precisa existir.
+            let novoProfessor = { id_professor: null, nome_completo: null };
+
+            if (professor) {
+                const [professores] = await banco.query(
+                    'SELECT id_professor, nome_completo FROM professores WHERE nome_completo = ?',
+                    [professor]
+                );
+
+                if (professores.length === 0) {
+                    throw new ErroRequisicao(
+                        `Professor "${professor}" não encontrado. Escolha um da lista.`
+                    );
+                }
+
+                novoProfessor = professores[0];
+            }
+
+            const novaMateria = materias[0];
+            const novaSala = sala || null;
+
+            // Descobre o que realmente mudou.
+            const mudancas = [];
+
+            if (atual.id_materia !== novaMateria.id_materia) {
+                mudancas.push(`disciplina de "${atual.materia}" para "${novaMateria.nome}"`);
+            }
+
+            if ((atual.id_professor ?? null) !== novoProfessor.id_professor) {
+                mudancas.push(
+                    `professor de "${atual.professor || 'não definido'}" para "${novoProfessor.nome_completo || 'não definido'}"`
+                );
+            }
+
+            if ((atual.sala || null) !== novaSala) {
+                mudancas.push(`sala de "${atual.sala || 'não definida'}" para "${novaSala || 'não definida'}"`);
+            }
+
+            const aulaAtualizada = {
+                id_horario: atual.id_horario,
+                id_materia: novaMateria.id_materia,
+                materia: novaMateria.nome,
+                id_professor: novoProfessor.id_professor,
+                professor: novoProfessor.nome_completo,
+                sala: novaSala
+            };
+
+            if (mudancas.length === 0) {
+                return { alterado: false, aula: aulaAtualizada };
+            }
+
+            await banco.query(
+                'UPDATE horarios SET materia = ?, professor = ?, sala = ? WHERE id_horario = ?',
+                [novaMateria.id_materia, novoProfessor.id_professor, novaSala, id]
+            );
+
+            const grupo = atual.grupo === 'B' ? 'Grupo B' : 'Grupo A/Classe inteira';
+            const hora = String(atual.horario).slice(0, 5);
+
+            await registrarHistorico(
+                'edicao',
+                `Aula editada (${atual.dia_semana}, ${hora}, ${atual.serie}ª série ${atual.curso}, ${grupo}): ${mudancas.join('; ')}.`,
+                banco
+            );
+
+            return { alterado: true, aula: aulaAtualizada };
+        });
+
+        return res.status(200).json({
+            mensagem: resposta.alterado
+                ? 'Aula atualizada com sucesso!'
+                : 'Nenhuma alteração foi feita.',
+            ...resposta
+        });
+
+    } catch (error) {
+
+        if (error instanceof ErroRequisicao) {
+            return res.status(error.status).json({ mensagem: error.message });
+        }
+
+        console.error('ERRO AO EDITAR AULA:', error);
+        return res.status(500).json({ mensagem: 'Erro interno ao editar a aula.' });
     }
 });
 
@@ -438,63 +672,140 @@ router.post('/redefinir_senha', verificarResetToken, async (req, res) => {
 
 
 
-router.post('/atualizar_email_senha', verificarToken, async (req, res) => {
+// ===== SEGURANÇA DA CONTA =====
+// Existe um único usuário (o admin): trocar o e-mail SUBSTITUI o anterior.
+
+router.post('/alterar_email', verificarToken, async (req, res) => {
     try {
-        const { email, senha } = req.body;
-        const email_antigo = req.email;
+        const emailAtual = String(req.body.email_atual ?? '').trim();
+        const novoEmail = String(req.body.novo_email ?? '').trim();
 
-        if (!email || !senha) {
-            return res.status(400).json({
-                mensagem: 'Informe o novo e-mail e a senha.'
-            });
+        if (!emailAtual || !novoEmail) {
+            throw new ErroRequisicao('Informe o e-mail atual e o novo e-mail.');
         }
 
-        const senha_pronta = await bcrypt.hash(senha, 10);
-
-        const [resultado] = await connection.query(
-            `UPDATE usuario
-             SET email = ?, senha = ?, status_user = "admim"
-             WHERE email = ?`,
-            [email, senha_pronta, email_antigo]
-        );
-
-        if (resultado.affectedRows === 0) {
-            return res.status(404).json({
-                mensagem: 'Usuário não encontrado ou dados inalterados.'
-            });
+        if (!emailRegex.test(novoEmail) || novoEmail.length > 100) {
+            throw new ErroRequisicao('Digite um novo e-mail válido.');
         }
 
-        await registrarHistorico(
-            'email',
-            'O e-mail da conta foi alterado.'
+        const [usuarios] = await connection.query(
+            'SELECT id_usuario, email FROM usuario WHERE id_usuario = ?',
+            [req.usuarioId]
         );
 
-        await registrarHistorico(
-            'senha',
-            'A senha da conta foi alterada.'
-        );
+        if (usuarios.length === 0) {
+            throw new ErroRequisicao('Usuário não encontrado.', 404);
+        }
 
-        const token = jwt.sign(
-            {
-                id: req.usuarioId,
-                email: email,
-                status: 'admim'
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: '5h' }
-        );
+        const usuario = usuarios[0];
+
+        if (emailAtual.toLowerCase() !== usuario.email.toLowerCase()) {
+            throw new ErroRequisicao('O e-mail atual informado não confere.');
+        }
+
+        if (novoEmail.toLowerCase() === usuario.email.toLowerCase()) {
+            throw new ErroRequisicao('O novo e-mail precisa ser diferente do atual.');
+        }
+
+        await comTransacao(async (banco) => {
+            await banco.query(
+                'UPDATE usuario SET email = ?, status_user = ? WHERE id_usuario = ?',
+                [novoEmail, 'admin', usuario.id_usuario]
+            );
+
+            await registrarHistorico(
+                'email',
+                `O e-mail da conta foi alterado de ${usuario.email} para ${novoEmail}.`,
+                banco
+            );
+        });
+
+        // Renova a sessão: o JWT antigo ainda carregaria o e-mail anterior.
+        gravarCookieSessao(res, {
+            id_usuario: usuario.id_usuario,
+            email: novoEmail,
+            status_user: 'admin'
+        });
 
         return res.status(200).json({
-            mensagem: 'E-mail e senha atualizados corretamente!',
-            token
+            mensagem: 'E-mail atualizado com sucesso!',
+            email: novoEmail
         });
 
     } catch (error) {
-        console.error('ERRO AO ATUALIZAR CONTA:', error);
 
-        return res.status(500).json({
-            mensagem: 'Erro interno ao atualizar a conta.'
+        if (error instanceof ErroRequisicao) {
+            return res.status(error.status).json({ mensagem: error.message });
+        }
+
+        console.error('ERRO AO ALTERAR E-MAIL:', error);
+        return res.status(500).json({ mensagem: 'Erro interno ao alterar o e-mail.' });
+    }
+});
+
+
+router.post('/alterar_senha', verificarToken, async (req, res) => {
+    try {
+        const { senha_atual, senha_nova } = req.body;
+
+        if (!senha_atual || !senha_nova) {
+            throw new ErroRequisicao('Informe a senha atual e a nova senha.');
+        }
+
+        if (!senhaForte(senha_nova)) {
+            throw new ErroRequisicao(
+                'A nova senha precisa ter 8 caracteres, uma maiúscula, um número e um caractere especial.'
+            );
+        }
+
+        const [usuarios] = await connection.query(
+            'SELECT id_usuario, senha FROM usuario WHERE id_usuario = ?',
+            [req.usuarioId]
+        );
+
+        if (usuarios.length === 0) {
+            throw new ErroRequisicao('Usuário não encontrado.', 404);
+        }
+
+        const usuario = usuarios[0];
+
+        const senhaCorreta = await bcrypt.compare(String(senha_atual), usuario.senha);
+
+        if (!senhaCorreta) {
+            throw new ErroRequisicao('A senha atual está incorreta.');
+        }
+
+        if (senha_atual === senha_nova) {
+            throw new ErroRequisicao('A nova senha precisa ser diferente da atual.');
+        }
+
+        const senhaCriptografada = await bcrypt.hash(senha_nova, 10);
+
+        await comTransacao(async (banco) => {
+            await banco.query(
+                'UPDATE usuario SET senha = ? WHERE id_usuario = ?',
+                [senhaCriptografada, usuario.id_usuario]
+            );
+
+            await registrarHistorico(
+                'senha',
+                'A senha da conta foi alterada.',
+                banco
+            );
         });
+
+        return res.status(200).json({
+            mensagem: 'Senha atualizada com sucesso!'
+        });
+
+    } catch (error) {
+
+        if (error instanceof ErroRequisicao) {
+            return res.status(error.status).json({ mensagem: error.message });
+        }
+
+        console.error('ERRO AO ALTERAR SENHA:', error);
+        return res.status(500).json({ mensagem: 'Erro interno ao alterar a senha.' });
     }
 });
 

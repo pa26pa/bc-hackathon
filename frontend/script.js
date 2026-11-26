@@ -6,25 +6,55 @@ document.addEventListener("DOMContentLoaded", async function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     // ===== TOAST =====
-    function mostrarToast(mensagem, tipo = 'info') {
+    // tipo: 'erro' (vermelho), 'aviso' (amarelo), 'info' (azul) ou 'sucesso' (verde)
+    // Obs.: o toast fica ATRÁS de um <dialog> aberto, por isso os modais
+    // mostram suas mensagens dentro deles.
+    function mostrarToast(mensagem, tipo = 'info', duracao = 3500) {
         const toast = document.createElement('div');
         toast.textContent = mensagem;
+
+        const cores = {
+            erro: '#ef4444',
+            aviso: '#f59e0b',
+            info: '#3b82f6'
+        };
 
         Object.assign(toast.style, {
             position: 'fixed',
             bottom: '20px',
             right: '20px',
+            maxWidth: 'min(380px, 90vw)',
             padding: '12px 20px',
             borderRadius: '10px',
             color: '#fff',
-            background: tipo === 'erro' ? '#ef4444' : '#22c55e',
+            background: cores[tipo] || '#22c55e',
             zIndex: 99999,
             fontSize: '0.9rem',
             boxShadow: '0 4px 12px rgba(0,0,0,.3)'
         });
 
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
+        setTimeout(() => toast.remove(), duracao);
+    }
+
+    // Envia JSON para a API e devolve { ok, status, dados }.
+    async function enviarJson(url, metodo, corpo) {
+        const resposta = await fetch(url, {
+            method: metodo,
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(corpo)
+        });
+
+        let dados = {};
+
+        try {
+            dados = await resposta.json();
+        } catch (erro) {
+            dados = {};
+        }
+
+        return { ok: resposta.ok, status: resposta.status, dados };
     }
 
     // ===== VERIFICAR SESSÃO =====
@@ -163,6 +193,14 @@ document.addEventListener("DOMContentLoaded", async function () {
                 if (info && info.email) {
                     telaLogin.style.display = 'none';
                     telaSite.style.display = 'flex';
+
+                    mostrarToast(
+                        'Login realizado! Abra o menu (☰) e vá em "Segurança" para cadastrar o seu e-mail e a sua senha.',
+                        'info',
+                        9000
+                    );
+
+                    await carregarHorariosPadrao();
                 } else {
                     senhaErro.textContent = 'Não foi possível validar sua sessão.';
                     btnLogin.disabled = false;
@@ -1050,25 +1088,25 @@ document.addEventListener("DOMContentLoaded", async function () {
                             normalizarHorario(item.horario) === horarioLinha
                         );
 
-                        aulas.forEach((aula, index) => {
-                            if (index > 0) {
-                                td.appendChild(document.createElement('br'));
-                            }
+                        aulas.forEach(aula => {
 
-                            // Identifica o grupo quando a visualização
-                            // está mostrando todos os grupos.
-                            
+                            // Cada aula fica em seu próprio bloco: assim, na
+                            // visualização "Todos os grupos", dá para editar
+                            // a aula do Grupo A e a do Grupo B separadamente.
+                            const item = document.createElement('div');
+                            item.className = 'aula-item';
+                            item.dataset.idHorario = aula.id_horario;
 
                             const disciplina = document.createElement('span');
                             disciplina.textContent = aula.materia || 'Disciplina';
-                            td.appendChild(disciplina);
+                            item.appendChild(disciplina);
 
                             const professor = document.createElement('span');
                             professor.className = 'professor-aula';
                             professor.textContent =
                                 aula.professor || 'Professor não definido';
 
-                            td.appendChild(professor);
+                            item.appendChild(professor);
 
                             const sala = document.createElement('span');
                             sala.className = 'sala-aula';
@@ -1078,14 +1116,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                                 sala.title = 'Sala não cadastrada';
                             }
 
-                            td.appendChild(sala);
-
-                            if (index === 0) {
-                                td.dataset.disciplina = aula.materia || '';
-                                td.dataset.professor = aula.professor || '';
-                                td.dataset.sala = aula.sala || '';
-                                td.dataset.idHorario = aula.id_horario;
-                            }
+                            item.appendChild(sala);
+                            td.appendChild(item);
                         });
 
                         tr.appendChild(td);
@@ -1097,6 +1129,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         select.addEventListener('change', preencherTabela);
+
+        // Permite redesenhar a grade depois de uma edição,
+        // mantendo o grupo que estava selecionado.
+        table.atualizarGrade = preencherTabela;
 
         preencherTabela();
 
@@ -1146,6 +1182,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         horarios.forEach(item => {
             const tr = document.createElement('tr');
+            tr.dataset.idHorario = item.id_horario;
 
             const grupoTexto =
                 item.grupo === 'A/Inteira'
@@ -1178,9 +1215,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         gradesContainer.appendChild(tabela);
     }
 
+    // Horários atualmente carregados (usados pela edição de aulas).
+    let todosHorarios = [];
+    let horariosPesquisa = null; // null = as seis grades estão na tela
+
     async function carregarHorariosPadrao() {
         try {
             const horarios = await buscarHorarios();
+            todosHorarios = horarios;
+            horariosPesquisa = null;
             popularFiltros(horarios);
             renderizarGradesPadrao(horarios);
         } catch (erro) {
@@ -1209,6 +1252,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
 
             const horarios = await buscarHorarios(filtros);
+            horariosPesquisa = horarios;
             renderizarTabelaPesquisa(horarios);
         } catch (erro) {
             console.error('ERRO NA CONSULTA:', erro);
@@ -1223,16 +1267,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         await carregarHorariosPadrao();
     });
 
-    // Primeira exibição: as seis grades padrão.
-    await carregarHorariosPadrao();
-    //fechar modal segurança
-    const modalSeguranca = document.getElementById('modal-2');
-const fecharSeguranca = document.querySelector('.fechar-seguranca');
-
-fecharSeguranca?.addEventListener('click', () => {
-    modalSeguranca?.close();
-});
-
+    // As grades só são carregadas quando existe sessão (logo após o login
+    // ou, se o cookie ainda for válido, ao abrir a página).
     // ===== MODAL DE EDIÇÃO DAS AULAS =====
     const modalEditarAula = document.getElementById('modal-editar-aula');
     const fecharEdicaoAula = document.getElementById('fechar-edicao-aula');
@@ -1240,88 +1276,399 @@ fecharSeguranca?.addEventListener('click', () => {
     const inputDisciplina = document.getElementById('editar-disciplina');
     const inputProfessor = document.getElementById('editar-professor');
     const inputSala = document.getElementById('editar-sala');
+    const editarErro = document.getElementById('editar-erro');
+    const editarInfo = document.getElementById('editar-aula-info');
+    const btnSalvarEdicao = document.getElementById('salvar-edicao-aula');
+    const listaDisciplinas = document.getElementById('lista-disciplinas');
+    const listaProfessores = document.getElementById('lista-professores');
 
-    let celulaSelecionada = null;
+    let aulaEmEdicao = null;
+    let opcoesEdicaoCarregadas = false;
+
+    // Preenche as sugestões (datalist) de disciplina e professor.
+    async function carregarOpcoesEdicao() {
+        if (opcoesEdicaoCarregadas) return;
+
+        try {
+            const resposta = await fetch(base_url + '/opcoes_edicao', {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+
+            if (!resposta.ok) return;
+
+            const dados = await resposta.json();
+
+            const preencher = (datalist, nomes) => {
+                datalist.innerHTML = '';
+
+                (nomes || []).forEach(nome => {
+                    const opcao = document.createElement('option');
+                    opcao.value = nome;
+                    datalist.appendChild(opcao);
+                });
+            };
+
+            preencher(listaDisciplinas, dados.materias);
+            preencher(listaProfessores, dados.professores);
+
+            opcoesEdicaoCarregadas = true;
+
+        } catch (erro) {
+            console.error('Erro ao carregar opções de edição:', erro);
+        }
+    }
+
+    function buscarAulaPorId(id) {
+        return (
+            todosHorarios.find(h => Number(h.id_horario) === id) ||
+            horariosPesquisa?.find(h => Number(h.id_horario) === id) ||
+            null
+        );
+    }
+
+    // Recria os filtros (novas salas, professores...) sem perder a seleção.
+    function atualizarOpcoesFiltros() {
+        const selecionados = {};
+
+        Object.entries(controlesFiltro).forEach(([chave, select]) => {
+            selecionados[chave] = select?.value || '';
+        });
+
+        popularFiltros(todosHorarios);
+
+        Object.entries(controlesFiltro).forEach(([chave, select]) => {
+            if (select) select.value = selecionados[chave];
+        });
+    }
+
+    // Redesenha o que está na tela (grades ou resultado da pesquisa).
+    function atualizarVisaoAtual() {
+        if (horariosPesquisa) {
+            renderizarTabelaPesquisa(horariosPesquisa);
+            return;
+        }
+
+        document.querySelectorAll('table.grade').forEach(tabela => {
+            tabela.atualizarGrade?.();
+        });
+    }
+
+    // Copia para a memória o que o servidor acabou de salvar.
+    function aplicarEdicao(aula) {
+        [todosHorarios, horariosPesquisa || []].forEach(lista => {
+            lista.forEach(item => {
+                if (Number(item.id_horario) !== Number(aula.id_horario)) return;
+
+                item.id_materia = aula.id_materia;
+                item.materia = aula.materia;
+                item.id_professor = aula.id_professor;
+                item.professor = aula.professor;
+                item.sala = aula.sala;
+            });
+        });
+
+        atualizarOpcoesFiltros();
+        atualizarVisaoAtual();
+    }
+
+    function abrirEdicao(id) {
+        const aula = buscarAulaPorId(id);
+
+        if (!aula) return;
+
+        aulaEmEdicao = aula;
+
+        const grupo = aula.grupo === 'B' ? 'Grupo B' : 'Grupo A ou Classe Inteira';
+
+        editarInfo.textContent = [
+            aula.dia_semana,
+            normalizarHorario(aula.horario),
+            obterNomeTurma(aula),
+            grupo
+        ].join(' · ');
+
+        inputDisciplina.value = aula.materia || '';
+        inputProfessor.value = aula.professor || '';
+        inputSala.value = aula.sala || '';
+        editarErro.textContent = '';
+
+        carregarOpcoesEdicao();
+        modalEditarAula.showModal();
+    }
+
+    function fecharEdicao() {
+        modalEditarAula.close();
+        aulaEmEdicao = null;
+    }
 
     if (
         modalEditarAula &&
         formEditarAula &&
         inputDisciplina &&
-        inputProfessor && 
+        inputProfessor &&
         inputSala
     ) {
 
+        // Clique em uma aula (grade) ou em uma linha (pesquisa) abre a edição.
         document.addEventListener('click', (e) => {
 
-            const celula = e.target.closest(
-                '.grade tbody td:not(:first-child):not([colspan])'
+            const alvo = e.target.closest('.grade [data-id-horario]');
+
+            if (alvo) {
+                abrirEdicao(Number(alvo.dataset.idHorario));
+                return;
+            }
+
+            const celulaVazia = e.target.closest(
+                '.grade:not(.tabela-pesquisa) tbody td:not(:first-child):not([colspan])'
             );
 
-            if (!celula) return;
-
-            celulaSelecionada = celula;
-
-            inputDisciplina.value = celula.dataset.disciplina || '';
-            inputProfessor.value = celula.dataset.professor || '';
-            inputSala.value = celula.dataset.sala || '';
-
-            modalEditarAula.showModal();
+            if (celulaVazia) {
+                mostrarToast('Não há aula cadastrada neste horário para editar.', 'aviso');
+            }
         });
 
-        formEditarAula.addEventListener('submit', (e) => {
+        formEditarAula.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            if (!celulaSelecionada) return;
+            if (!aulaEmEdicao) return;
 
             const disciplina = inputDisciplina.value.trim();
             const professor = inputProfessor.value.trim();
             const sala = inputSala.value.trim();
 
-            if (!disciplina || !professor) return;
-
-            celulaSelecionada.dataset.disciplina = disciplina;
-            celulaSelecionada.dataset.professor = professor;
-            celulaSelecionada.dataset.sala = sala;
-
-            celulaSelecionada.innerHTML = '';
-
-            const spanDisciplina = document.createElement('span');
-            spanDisciplina.textContent = disciplina;
-
-            const spanProfessor = document.createElement('span');
-            spanProfessor.className = 'professor-aula';
-            spanProfessor.textContent = professor;
-
-            const spanSala = document.createElement('span');
-            spanSala.className = 'sala-aula';
-            spanSala.textContent = sala || '—';
-
-            if (!sala) {
-                spanSala.title = 'Sala não cadastrada';
+            if (!disciplina) {
+                editarErro.textContent = 'Informe a disciplina.';
+                return;
             }
 
-            celulaSelecionada.append(
-                spanDisciplina,
-                spanProfessor,
-                spanSala
-            );
+            editarErro.textContent = '';
+            btnSalvarEdicao.disabled = true;
 
-            modalEditarAula.close();
-            celulaSelecionada = null;
+            try {
+                const { ok, dados } = await enviarJson(
+                    `${base_url}/horarios/${aulaEmEdicao.id_horario}`,
+                    'PUT',
+                    { disciplina, professor, sala }
+                );
+
+                if (!ok) {
+                    editarErro.textContent =
+                        dados.mensagem || 'Não foi possível salvar a aula.';
+                    return;
+                }
+
+                aplicarEdicao(dados.aula);
+                fecharEdicao();
+
+                if (dados.alterado) {
+                    mostrarToast('Aula atualizada com sucesso!', 'sucesso');
+                } else {
+                    mostrarToast('Nenhuma alteração foi feita.', 'aviso');
+                }
+
+            } catch (erro) {
+                console.error('Erro ao salvar aula:', erro);
+                editarErro.textContent = 'Erro de conexão com o servidor.';
+
+            } finally {
+                btnSalvarEdicao.disabled = false;
+            }
         });
 
-        fecharEdicaoAula?.addEventListener('click', () => {
-            modalEditarAula.close();
-            celulaSelecionada = null;
-        });
+        fecharEdicaoAula?.addEventListener('click', fecharEdicao);
 
         modalEditarAula.addEventListener('click', (e) => {
             if (e.target === modalEditarAula) {
-                modalEditarAula.close();
-                celulaSelecionada = null;
+                fecharEdicao();
             }
         });
+
+        // Esc também fecha o modal: garante que nada fique selecionado.
+        modalEditarAula.addEventListener('close', () => {
+            aulaEmEdicao = null;
+        });
     }
+
+    // ===== MODAL DE SEGURANÇA (trocar e-mail e senha) =====
+    const modalSeguranca = document.getElementById('modal-2');
+    const fecharSeguranca = document.getElementById('fechar-seguranca');
+
+    const formAlterarEmail = document.getElementById('form-alterar-email');
+    const segEmailAtual = document.getElementById('seg-email-atual');
+    const segEmailNovo = document.getElementById('seg-email-novo');
+    const segEmailConfirmar = document.getElementById('seg-email-confirmar');
+    const segEmailErro = document.getElementById('seg-email-erro');
+    const segEmailSucesso = document.getElementById('seg-email-sucesso');
+    const btnSalvarEmail = document.getElementById('btn-salvar-email');
+
+    const formAlterarSenha = document.getElementById('form-alterar-senha');
+    const segSenhaAtual = document.getElementById('seg-senha-atual');
+    const segSenhaNova = document.getElementById('seg-senha-nova');
+    const segSenhaConfirmar = document.getElementById('seg-senha-confirmar');
+    const segRequisitos = document.getElementById('seg-requisitos');
+    const segSenhaErro = document.getElementById('seg-senha-erro');
+    const segSenhaSucesso = document.getElementById('seg-senha-sucesso');
+    const btnSalvarSenha = document.getElementById('btn-salvar-senha');
+
+    // Atualiza a lista de requisitos e diz se a senha cumpre todos.
+    function atualizarRequisitosSeguranca() {
+        let tudoOk = true;
+
+        for (const [nome, teste] of Object.entries(requisitos)) {
+            const li = segRequisitos.querySelector(`[data-req="${nome}"]`);
+            const icone = li.querySelector('.icone');
+            const cumprido = teste(segSenhaNova.value);
+
+            li.classList.toggle('ok', cumprido);
+            icone.classList.toggle('ok', cumprido);
+            icone.textContent = cumprido ? '✓' : '✗';
+
+            if (!cumprido) tudoOk = false;
+        }
+
+        return tudoOk;
+    }
+
+    function limparModalSeguranca() {
+        formAlterarEmail.reset();
+        formAlterarSenha.reset();
+
+        [segEmailErro, segEmailSucesso, segSenhaErro, segSenhaSucesso].forEach(p => {
+            p.textContent = '';
+        });
+
+        segRequisitos.classList.remove('visivel');
+        atualizarRequisitosSeguranca();
+    }
+
+    fecharSeguranca?.addEventListener('click', () => {
+        modalSeguranca.close();
+    });
+
+    // Limpa os campos sempre que fechar (pelo X ou pela tecla Esc).
+    modalSeguranca?.addEventListener('close', limparModalSeguranca);
+
+    // --- Trocar e-mail ---
+    formAlterarEmail?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        segEmailErro.textContent = '';
+        segEmailSucesso.textContent = '';
+
+        const emailAtual = segEmailAtual.value.trim();
+        const novoEmail = segEmailNovo.value.trim();
+        const confirmar = segEmailConfirmar.value.trim();
+
+        if (!emailRegex.test(emailAtual) || !emailRegex.test(novoEmail)) {
+            segEmailErro.textContent = 'Digite e-mails válidos.';
+            return;
+        }
+
+        if (novoEmail.toLowerCase() !== confirmar.toLowerCase()) {
+            segEmailErro.textContent = 'Os e-mails não coincidem.';
+            return;
+        }
+
+        btnSalvarEmail.disabled = true;
+
+        try {
+            const { ok, dados } = await enviarJson(
+                base_url + '/alterar_email',
+                'POST',
+                { email_atual: emailAtual, novo_email: novoEmail }
+            );
+
+            if (!ok) {
+                segEmailErro.textContent =
+                    dados.mensagem || 'Não foi possível alterar o e-mail.';
+                return;
+            }
+
+            formAlterarEmail.reset();
+            segEmailSucesso.textContent =
+                'E-mail alterado! Use o novo e-mail no próximo login.';
+
+        } catch (erro) {
+            console.error('Erro ao alterar e-mail:', erro);
+            segEmailErro.textContent = 'Erro de conexão com o servidor.';
+
+        } finally {
+            btnSalvarEmail.disabled = false;
+        }
+    });
+
+    // --- Trocar senha ---
+    if (segSenhaNova && segRequisitos) {
+        segSenhaNova.addEventListener('focus', () => {
+            segRequisitos.classList.add('visivel');
+            atualizarRequisitosSeguranca();
+        });
+
+        segSenhaNova.addEventListener('blur', () => {
+            if (atualizarRequisitosSeguranca()) {
+                segRequisitos.classList.remove('visivel');
+            }
+        });
+
+        segSenhaNova.addEventListener('input', atualizarRequisitosSeguranca);
+    }
+
+    formAlterarSenha?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        segSenhaErro.textContent = '';
+        segSenhaSucesso.textContent = '';
+
+        if (!segSenhaAtual.value) {
+            segSenhaErro.textContent = 'Informe a senha atual.';
+            return;
+        }
+
+        if (!atualizarRequisitosSeguranca()) {
+            segRequisitos.classList.add('visivel');
+            segSenhaErro.textContent = 'A nova senha não atende aos requisitos.';
+            return;
+        }
+
+        if (segSenhaNova.value !== segSenhaConfirmar.value) {
+            segSenhaErro.textContent = 'As senhas não coincidem.';
+            return;
+        }
+
+        btnSalvarSenha.disabled = true;
+
+        try {
+            const { ok, dados } = await enviarJson(
+                base_url + '/alterar_senha',
+                'POST',
+                {
+                    senha_atual: segSenhaAtual.value,
+                    senha_nova: segSenhaNova.value
+                }
+            );
+
+            if (!ok) {
+                segSenhaErro.textContent =
+                    dados.mensagem || 'Não foi possível alterar a senha.';
+                return;
+            }
+
+            formAlterarSenha.reset();
+            segRequisitos.classList.remove('visivel');
+            atualizarRequisitosSeguranca();
+            segSenhaSucesso.textContent =
+                'Senha alterada! Use a nova senha no próximo login.';
+
+        } catch (erro) {
+            console.error('Erro ao alterar senha:', erro);
+            segSenhaErro.textContent = 'Erro de conexão com o servidor.';
+
+        } finally {
+            btnSalvarSenha.disabled = false;
+        }
+    });
 
     // ===== LIMPAR BUSCA =====
     document.getElementById('btn-limpar')?.addEventListener('click', () => {
@@ -1336,6 +1683,8 @@ fecharSeguranca?.addEventListener('click', () => {
     if (sessao && sessao.email) {
         telaLogin.style.display = 'none';
         telaSite.style.display = 'flex';
+
+        await carregarHorariosPadrao();
     }
 
     // ===== MENU DROPDOWN =====
@@ -1482,6 +1831,11 @@ fecharSeguranca?.addEventListener('click', () => {
 
         renderHistorico();
     }
+
+    // Fechar o modal do histórico pelo X
+    fecharHistorico?.addEventListener('click', () => {
+        modalHistorico.close();
+    });
 
     // ===== ABRIR MODAIS =====
     document.querySelectorAll('.btn-open-modal').forEach(button => {
