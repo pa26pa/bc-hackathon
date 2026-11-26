@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     const base_url = '/api';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
+    // E-mail provisório do admin: enquanto for este, avisamos para trocá-lo.
+    const EMAIL_PADRAO = 'teste@gmail.com';
+
     // ===== TOAST =====
     // tipo: 'erro' (vermelho), 'aviso' (amarelo), 'info' (azul) ou 'sucesso' (verde)
     // Obs.: o toast fica ATRÁS de um <dialog> aberto, por isso os modais
@@ -194,11 +197,14 @@ document.addEventListener("DOMContentLoaded", async function () {
                     telaLogin.style.display = 'none';
                     telaSite.style.display = 'flex';
 
-                    mostrarToast(
-                        'Login realizado! Abra o menu (☰) e vá em "Segurança" para cadastrar o seu e-mail e a sua senha.',
-                        'info',
-                        9000
-                    );
+                    // O aviso só aparece enquanto o e-mail do admin ainda for o padrão.
+                    if (String(info.email).trim().toLowerCase() === EMAIL_PADRAO) {
+                        mostrarToast(
+                            'Login realizado! Abra o menu (☰) e vá em "Segurança" para cadastrar o seu e-mail e a sua senha.',
+                            'info',
+                            9000
+                        );
+                    }
 
                     await carregarHorariosPadrao();
                 } else {

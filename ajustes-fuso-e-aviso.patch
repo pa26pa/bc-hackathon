@@ -1,0 +1,51 @@
+diff --git a/backend/database/connection.js b/backend/database/connection.js
+index 779449c..405a1ba 100644
+--- a/backend/database/connection.js
++++ b/backend/database/connection.js
+@@ -10,4 +10,11 @@ const connection = mysql.createPool({
+     database: process.env.DB_NAME
+ });
+ 
++// Horário de Brasília (UTC-3, sem horário de verão).
++// O servidor do Railway roda em UTC; sem isto, CURRENT_TIMESTAMP e o
++// DATE_FORMAT do histórico usariam o horário do servidor.
++connection.pool.on('connection', (conexao) => {
++    conexao.query("SET time_zone = '-03:00'");
++});
++
+ export default connection;
+\ No newline at end of file
+diff --git a/frontend/script.js b/frontend/script.js
+index 7895607..e234619 100644
+--- a/frontend/script.js
++++ b/frontend/script.js
+@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", async function () {
+     const base_url = '/api';
+     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+ 
++    // E-mail provisório do admin: enquanto for este, avisamos para trocá-lo.
++    const EMAIL_PADRAO = 'teste@gmail.com';
++
+     // ===== TOAST =====
+     // tipo: 'erro' (vermelho), 'aviso' (amarelo), 'info' (azul) ou 'sucesso' (verde)
+     // Obs.: o toast fica ATRÁS de um <dialog> aberto, por isso os modais
+@@ -194,11 +197,14 @@ document.addEventListener("DOMContentLoaded", async function () {
+                     telaLogin.style.display = 'none';
+                     telaSite.style.display = 'flex';
+ 
+-                    mostrarToast(
+-                        'Login realizado! Abra o menu (☰) e vá em "Segurança" para cadastrar o seu e-mail e a sua senha.',
+-                        'info',
+-                        9000
+-                    );
++                    // O aviso só aparece enquanto o e-mail do admin ainda for o padrão.
++                    if (String(info.email).trim().toLowerCase() === EMAIL_PADRAO) {
++                        mostrarToast(
++                            'Login realizado! Abra o menu (☰) e vá em "Segurança" para cadastrar o seu e-mail e a sua senha.',
++                            'info',
++                            9000
++                        );
++                    }
+ 
+                     await carregarHorariosPadrao();
+                 } else {
