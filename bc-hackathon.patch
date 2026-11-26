@@ -1,0 +1,1587 @@
+diff --git a/backend/endpoints/auth.js b/backend/endpoints/auth.js
+index 8296de7..1c0e12f 100644
+--- a/backend/endpoints/auth.js
++++ b/backend/endpoints/auth.js
+@@ -9,6 +9,68 @@ import { registrarHistorico } from '../middleware/historico.js';
+ 
+ const router = express.Router();
+ 
++// ===== AUXILIARES =====
++
++const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
++
++// Erro com status HTTP, usado para devolver mensagens de validação ao front.
++class ErroRequisicao extends Error {
++    constructor(mensagem, status = 400) {
++        super(mensagem);
++        this.status = status;
++    }
++}
++
++// Mesmas regras de senha exibidas no front-end.
++function senhaForte(senha) {
++    return (
++        typeof senha === 'string' &&
++        senha.length >= 8 &&
++        /[A-Z]/.test(senha) &&
++        /\d/.test(senha) &&
++        /[^A-Za-z0-9]/.test(senha)
++    );
++}
++
++// Executa várias queries na mesma transação (alteração + histórico).
++async function comTransacao(funcao) {
++    const banco = await connection.getConnection();
++
++    try {
++        await banco.beginTransaction();
++        const resultado = await funcao(banco);
++        await banco.commit();
++        return resultado;
++    } catch (error) {
++        await banco.rollback();
++        throw error;
++    } finally {
++        banco.release();
++    }
++}
++
++// Grava o JWT da sessão no cookie HttpOnly (mesmas opções do login).
++function gravarCookieSessao(res, usuario) {
++    const token = jwt.sign(
++        {
++            id: usuario.id_usuario,
++            email: usuario.email,
++            status: usuario.status_user
++        },
++        process.env.JWT_SECRET,
++        { expiresIn: '5h' }
++    );
++
++    res.cookie('token', token, {
++        httpOnly: true,
++        secure: process.env.NODE_ENV === 'production',
++        sameSite: 'lax',
++        maxAge: 5 * 60 * 60 * 1000,
++        path: '/'
++    });
++}
++
++
+ router.post('/login', async (req, res) => {
+ 
+     try {
+@@ -190,6 +252,178 @@ router.get('/horarios', verificarToken, async (req, res) => {
+ 
+ 
+ 
++// Listas usadas nas sugestões do modal de edição de aula.
++router.get('/opcoes_edicao', verificarToken, async (req, res) => {
++    try {
++        const [materias] = await connection.query(
++            'SELECT nome FROM materias ORDER BY nome'
++        );
++
++        const [professores] = await connection.query(
++            'SELECT nome_completo AS nome FROM professores ORDER BY nome_completo'
++        );
++
++        return res.status(200).json({
++            materias: materias.map(m => m.nome),
++            professores: professores.map(p => p.nome)
++        });
++
++    } catch (error) {
++        console.error('ERRO AO CARREGAR OPÇÕES DE EDIÇÃO:', error);
++        return res.status(500).json({ mensagem: 'Erro ao carregar as opções.' });
++    }
++});
++
++
++// Edita disciplina, professor e sala de uma aula e registra no histórico.
++router.put('/horarios/:id', verificarToken, async (req, res) => {
++    try {
++        const id = Number(req.params.id);
++
++        if (!Number.isInteger(id) || id <= 0) {
++            throw new ErroRequisicao('Aula inválida.');
++        }
++
++        const disciplina = String(req.body.disciplina ?? '').trim();
++        const professor = String(req.body.professor ?? '').trim();
++        const sala = String(req.body.sala ?? '').trim();
++
++        if (!disciplina) {
++            throw new ErroRequisicao('Informe a disciplina.');
++        }
++
++        if (sala.length > 100) {
++            throw new ErroRequisicao('A sala deve ter no máximo 100 caracteres.');
++        }
++
++        const resposta = await comTransacao(async (banco) => {
++
++            const [aulas] = await banco.query(`
++                SELECT
++                    h.id_horario,
++                    h.dia_semana,
++                    h.horario,
++                    h.sala,
++                    h.materia AS id_materia,
++                    h.professor AS id_professor,
++                    m.nome AS materia,
++                    p.nome_completo AS professor,
++                    t.serie,
++                    t.curso,
++                    t.grupo
++                FROM horarios h
++                INNER JOIN turmas t ON h.turma = t.id_turma
++                INNER JOIN materias m ON h.materia = m.id_materia
++                LEFT JOIN professores p ON h.professor = p.id_professor
++                WHERE h.id_horario = ?
++            `, [id]);
++
++            if (aulas.length === 0) {
++                throw new ErroRequisicao('Aula não encontrada.', 404);
++            }
++
++            const atual = aulas[0];
++
++            // Disciplina: precisa existir na tabela materias.
++            const [materias] = await banco.query(
++                'SELECT id_materia, nome FROM materias WHERE nome = ?',
++                [disciplina]
++            );
++
++            if (materias.length === 0) {
++                throw new ErroRequisicao(
++                    `Disciplina "${disciplina}" não encontrada. Escolha uma da lista.`
++                );
++            }
++
++            // Professor: opcional, mas se informado precisa existir.
++            let novoProfessor = { id_professor: null, nome_completo: null };
++
++            if (professor) {
++                const [professores] = await banco.query(
++                    'SELECT id_professor, nome_completo FROM professores WHERE nome_completo = ?',
++                    [professor]
++                );
++
++                if (professores.length === 0) {
++                    throw new ErroRequisicao(
++                        `Professor "${professor}" não encontrado. Escolha um da lista.`
++                    );
++                }
++
++                novoProfessor = professores[0];
++            }
++
++            const novaMateria = materias[0];
++            const novaSala = sala || null;
++
++            // Descobre o que realmente mudou.
++            const mudancas = [];
++
++            if (atual.id_materia !== novaMateria.id_materia) {
++                mudancas.push(`disciplina de "${atual.materia}" para "${novaMateria.nome}"`);
++            }
++
++            if ((atual.id_professor ?? null) !== novoProfessor.id_professor) {
++                mudancas.push(
++                    `professor de "${atual.professor || 'não definido'}" para "${novoProfessor.nome_completo || 'não definido'}"`
++                );
++            }
++
++            if ((atual.sala || null) !== novaSala) {
++                mudancas.push(`sala de "${atual.sala || 'não definida'}" para "${novaSala || 'não definida'}"`);
++            }
++
++            const aulaAtualizada = {
++                id_horario: atual.id_horario,
++                id_materia: novaMateria.id_materia,
++                materia: novaMateria.nome,
++                id_professor: novoProfessor.id_professor,
++                professor: novoProfessor.nome_completo,
++                sala: novaSala
++            };
++
++            if (mudancas.length === 0) {
++                return { alterado: false, aula: aulaAtualizada };
++            }
++
++            await banco.query(
++                'UPDATE horarios SET materia = ?, professor = ?, sala = ? WHERE id_horario = ?',
++                [novaMateria.id_materia, novoProfessor.id_professor, novaSala, id]
++            );
++
++            const grupo = atual.grupo === 'B' ? 'Grupo B' : 'Grupo A/Classe inteira';
++            const hora = String(atual.horario).slice(0, 5);
++
++            await registrarHistorico(
++                'edicao',
++                `Aula editada (${atual.dia_semana}, ${hora}, ${atual.serie}ª série ${atual.curso}, ${grupo}): ${mudancas.join('; ')}.`,
++                banco
++            );
++
++            return { alterado: true, aula: aulaAtualizada };
++        });
++
++        return res.status(200).json({
++            mensagem: resposta.alterado
++                ? 'Aula atualizada com sucesso!'
++                : 'Nenhuma alteração foi feita.',
++            ...resposta
++        });
++
++    } catch (error) {
++
++        if (error instanceof ErroRequisicao) {
++            return res.status(error.status).json({ mensagem: error.message });
++        }
++
++        console.error('ERRO AO EDITAR AULA:', error);
++        return res.status(500).json({ mensagem: 'Erro interno ao editar a aula.' });
++    }
++});
++
++
++
+ // ===== RECUPERAÇÃO DE SENHA =====
+ 
+ // Verifica o token que guarda o código enviado por e-mail.
+@@ -438,63 +672,140 @@ router.post('/redefinir_senha', verificarResetToken, async (req, res) => {
+ 
+ 
+ 
+-router.post('/atualizar_email_senha', verificarToken, async (req, res) => {
++// ===== SEGURANÇA DA CONTA =====
++// Existe um único usuário (o admin): trocar o e-mail SUBSTITUI o anterior.
++
++router.post('/alterar_email', verificarToken, async (req, res) => {
+     try {
+-        const { email, senha } = req.body;
+-        const email_antigo = req.email;
++        const emailAtual = String(req.body.email_atual ?? '').trim();
++        const novoEmail = String(req.body.novo_email ?? '').trim();
+ 
+-        if (!email || !senha) {
+-            return res.status(400).json({
+-                mensagem: 'Informe o novo e-mail e a senha.'
+-            });
++        if (!emailAtual || !novoEmail) {
++            throw new ErroRequisicao('Informe o e-mail atual e o novo e-mail.');
+         }
+ 
+-        const senha_pronta = await bcrypt.hash(senha, 10);
++        if (!emailRegex.test(novoEmail) || novoEmail.length > 100) {
++            throw new ErroRequisicao('Digite um novo e-mail válido.');
++        }
+ 
+-        const [resultado] = await connection.query(
+-            `UPDATE usuario
+-             SET email = ?, senha = ?, status_user = "admim"
+-             WHERE email = ?`,
+-            [email, senha_pronta, email_antigo]
++        const [usuarios] = await connection.query(
++            'SELECT id_usuario, email FROM usuario WHERE id_usuario = ?',
++            [req.usuarioId]
+         );
+ 
+-        if (resultado.affectedRows === 0) {
+-            return res.status(404).json({
+-                mensagem: 'Usuário não encontrado ou dados inalterados.'
+-            });
++        if (usuarios.length === 0) {
++            throw new ErroRequisicao('Usuário não encontrado.', 404);
+         }
+ 
+-        await registrarHistorico(
+-            'email',
+-            'O e-mail da conta foi alterado.'
+-        );
++        const usuario = usuarios[0];
+ 
+-        await registrarHistorico(
+-            'senha',
+-            'A senha da conta foi alterada.'
+-        );
++        if (emailAtual.toLowerCase() !== usuario.email.toLowerCase()) {
++            throw new ErroRequisicao('O e-mail atual informado não confere.');
++        }
+ 
+-        const token = jwt.sign(
+-            {
+-                id: req.usuarioId,
+-                email: email,
+-                status: 'admim'
+-            },
+-            process.env.JWT_SECRET,
+-            { expiresIn: '5h' }
+-        );
++        if (novoEmail.toLowerCase() === usuario.email.toLowerCase()) {
++            throw new ErroRequisicao('O novo e-mail precisa ser diferente do atual.');
++        }
++
++        await comTransacao(async (banco) => {
++            await banco.query(
++                'UPDATE usuario SET email = ?, status_user = ? WHERE id_usuario = ?',
++                [novoEmail, 'admin', usuario.id_usuario]
++            );
++
++            await registrarHistorico(
++                'email',
++                `O e-mail da conta foi alterado de ${usuario.email} para ${novoEmail}.`,
++                banco
++            );
++        });
++
++        // Renova a sessão: o JWT antigo ainda carregaria o e-mail anterior.
++        gravarCookieSessao(res, {
++            id_usuario: usuario.id_usuario,
++            email: novoEmail,
++            status_user: 'admin'
++        });
+ 
+         return res.status(200).json({
+-            mensagem: 'E-mail e senha atualizados corretamente!',
+-            token
++            mensagem: 'E-mail atualizado com sucesso!',
++            email: novoEmail
+         });
+ 
+     } catch (error) {
+-        console.error('ERRO AO ATUALIZAR CONTA:', error);
+ 
+-        return res.status(500).json({
+-            mensagem: 'Erro interno ao atualizar a conta.'
++        if (error instanceof ErroRequisicao) {
++            return res.status(error.status).json({ mensagem: error.message });
++        }
++
++        console.error('ERRO AO ALTERAR E-MAIL:', error);
++        return res.status(500).json({ mensagem: 'Erro interno ao alterar o e-mail.' });
++    }
++});
++
++
++router.post('/alterar_senha', verificarToken, async (req, res) => {
++    try {
++        const { senha_atual, senha_nova } = req.body;
++
++        if (!senha_atual || !senha_nova) {
++            throw new ErroRequisicao('Informe a senha atual e a nova senha.');
++        }
++
++        if (!senhaForte(senha_nova)) {
++            throw new ErroRequisicao(
++                'A nova senha precisa ter 8 caracteres, uma maiúscula, um número e um caractere especial.'
++            );
++        }
++
++        const [usuarios] = await connection.query(
++            'SELECT id_usuario, senha FROM usuario WHERE id_usuario = ?',
++            [req.usuarioId]
++        );
++
++        if (usuarios.length === 0) {
++            throw new ErroRequisicao('Usuário não encontrado.', 404);
++        }
++
++        const usuario = usuarios[0];
++
++        const senhaCorreta = await bcrypt.compare(String(senha_atual), usuario.senha);
++
++        if (!senhaCorreta) {
++            throw new ErroRequisicao('A senha atual está incorreta.');
++        }
++
++        if (senha_atual === senha_nova) {
++            throw new ErroRequisicao('A nova senha precisa ser diferente da atual.');
++        }
++
++        const senhaCriptografada = await bcrypt.hash(senha_nova, 10);
++
++        await comTransacao(async (banco) => {
++            await banco.query(
++                'UPDATE usuario SET senha = ? WHERE id_usuario = ?',
++                [senhaCriptografada, usuario.id_usuario]
++            );
++
++            await registrarHistorico(
++                'senha',
++                'A senha da conta foi alterada.',
++                banco
++            );
+         });
++
++        return res.status(200).json({
++            mensagem: 'Senha atualizada com sucesso!'
++        });
++
++    } catch (error) {
++
++        if (error instanceof ErroRequisicao) {
++            return res.status(error.status).json({ mensagem: error.message });
++        }
++
++        console.error('ERRO AO ALTERAR SENHA:', error);
++        return res.status(500).json({ mensagem: 'Erro interno ao alterar a senha.' });
+     }
+ });
+ 
+diff --git a/frontend/home.html b/frontend/home.html
+index 41bcfdb..6daeaa6 100644
+--- a/frontend/home.html
++++ b/frontend/home.html
+@@ -154,80 +154,63 @@
+ 
+         <!-- MODAL SEGURANÇA -->
+         <dialog class="modal-seguranca" id="modal-2">
+-            <button type="button" id="fechar-seguranca" class="fechar-seguranca" data-modal="modal-2" aria-label="Fechar">
+-                <i class="fa-solid fa-xmark"></i>
+-            </button>
+-
+-            <div class="seguranca-cabecalho">
+-                <div class="seguranca-icone-titulo">
+-                    <div>
+-                        <h1>Segurança da conta</h1>
+-                        <p>Gerencie seu e-mail e sua senha.</p>
+-                    </div>
+-                </div>
+-            </div>
++            <button type="button" class="fechar-edicao-aula" id="fechar-seguranca" aria-label="Fechar">&times;</button>
+ 
+-            <div class="seguranca-conteudo">
+-                <!-- ALTERAR E-MAIL -->
+-                <section class="seguranca-card seguranca-card-email">
+-                    <div class="seguranca-card-titulo">
+-                        <div>
+-                            <h2>Alterar e-mail</h2>
+-                            <p>Atualize o endereço vinculado à sua conta.</p>
+-                        </div>
+-                    </div>
+-
+-                    <form class="form-seguranca" id="form-alterar-email">
+-                        <div class="campo-seguranca">
+-                            <label for="email-atual">E-mail atual</label>
+-                            <input type="email" id="email-atual" placeholder="seuemail@exemplo.com" autocomplete="email" required>
+-                        </div>
+-                        <div class="campo-seguranca">
+-                            <label for="novo-email">Novo e-mail</label>
+-                            <input type="email" id="novo-email" placeholder="novoemail@exemplo.com" autocomplete="email" required>
+-                        </div>
+-                        <div class="campo-seguranca">
+-                            <label for="confirmar-email">Confirmar novo e-mail</label>
+-                            <input type="email" id="confirmar-email" placeholder="Digite novamente o novo e-mail" autocomplete="email" required>
+-                        </div>
+-                        <button type="button" class="btn-seguranca btn-email">
+-                             Salvar novo e-mail
+-                        </button>
+-                    </form>
+-                </section>
+-
+-                <!-- ALTERAR SENHA -->
+-                <section class="seguranca-card seguranca-card-senha">
+-                    <div class="seguranca-card-titulo">
+-                        <div>
+-                            <h2>Alterar senha</h2>
+-                            <p>Escolha uma senha forte para sua conta.</p>
+-                            <br>
+-                        </div>
+-                    </div>
+-
+-                    <form class="form-seguranca" id="form-alterar-senha">
+-                        <div class="campo-seguranca">
+-                            <label for="senha-atual">Senha atual</label>
+-                            <input type="password" id="senha-atual" placeholder="Digite sua senha atual" autocomplete="current-password" required>
+-                        </div>
+-                        <div class="campo-seguranca">
+-                            <label for="nova-senha">Nova senha</label>
+-                            <input type="password" id="nova-senha" placeholder="Digite a nova senha" autocomplete="new-password" required> <br>
+-                            <small class="ajuda-seguranca">Use pelo menos 8 caracteres, uma letra maiúscula, um número e um caractere especial.</small>
+-                        </div>  
+-                        <div class="campo-seguranca">
+-                            <label for="confirmar-senha">Confirmar nova senha</label>
+-                            <input type="password" id="confirmar-senha" placeholder="Digite novamente a nova senha" autocomplete="new-password" required>
+-                        </div>
+-                        <button type="button" class="btn-seguranca btn-senha">
+-                            </i> Salvar nova senha
+-                        </button>
+-                    </form>
+-                </section>
+-            </div>
++            <h1>Segurança da conta</h1>
++            <p class="seguranca-subtitulo">Gerencie o e-mail e a senha de acesso ao sistema.</p>
++
++            <!-- ALTERAR E-MAIL -->
++            <section class="seguranca-secao">
++                <h2>Alterar e-mail</h2>
++                <p class="seguranca-desc">O novo e-mail substitui o atual: somente ele poderá entrar no sistema.</p>
++
++                <form class="form-seguranca" id="form-alterar-email" novalidate>
++                    <label for="seg-email-atual">E-mail atual</label>
++                    <input type="email" id="seg-email-atual" placeholder="seuemail@exemplo.com" autocomplete="username" required>
++
++                    <label for="seg-email-novo">Novo e-mail</label>
++                    <input type="email" id="seg-email-novo" placeholder="novoemail@exemplo.com" autocomplete="email" required>
++
++                    <label for="seg-email-confirmar">Confirmar novo e-mail</label>
++                    <input type="email" id="seg-email-confirmar" placeholder="Digite novamente o novo e-mail" autocomplete="email" required>
++
++                    <p class="erro" id="seg-email-erro"></p>
++                    <p class="sucesso" id="seg-email-sucesso"></p>
++
++                    <button type="submit" class="btn-seguranca" id="btn-salvar-email">Salvar novo e-mail</button>
++                </form>
++            </section>
++
++            <hr class="seguranca-divisor">
+ 
+-            <p class="aviso-seguranca"><i class="fa-solid fa-circle-info"></i> Esta área é destinada às configurações de segurança da sua conta.</p>
++            <!-- ALTERAR SENHA -->
++            <section class="seguranca-secao">
++                <h2>Alterar senha</h2>
++                <p class="seguranca-desc">Escolha uma senha forte para a sua conta.</p>
++
++                <form class="form-seguranca" id="form-alterar-senha" novalidate>
++                    <label for="seg-senha-atual">Senha atual</label>
++                    <input type="password" id="seg-senha-atual" placeholder="Digite sua senha atual" autocomplete="current-password" required>
++
++                    <label for="seg-senha-nova">Nova senha</label>
++                    <input type="password" id="seg-senha-nova" placeholder="Digite a nova senha" autocomplete="new-password" required>
++
++                    <ul id="seg-requisitos" class="requisitos">
++                        <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
++                        <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
++                        <li data-req="numero"><span class="icone">✗</span> Um número</li>
++                        <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
++                    </ul>
++
++                    <label for="seg-senha-confirmar">Confirmar nova senha</label>
++                    <input type="password" id="seg-senha-confirmar" placeholder="Digite novamente a nova senha" autocomplete="new-password" required>
++
++                    <p class="erro" id="seg-senha-erro"></p>
++                    <p class="sucesso" id="seg-senha-sucesso"></p>
++
++                    <button type="submit" class="btn-seguranca" id="btn-salvar-senha">Salvar nova senha</button>
++                </form>
++            </section>
+         </dialog>
+ 
+         <!-- MODAL TAMANHO DA LETRA  -->
+@@ -251,20 +234,26 @@
+         <dialog class="modal-editar-aula" id="modal-editar-aula">
+             <button type="button" class="fechar-edicao-aula" id="fechar-edicao-aula" aria-label="Fechar">&times;</button>
+             <h2>Editar aula</h2>
++            <p id="editar-aula-info" class="editar-aula-info"></p>
+             <form id="form-editar-aula" method="dialog">
+                 <label for="editar-disciplina">Disciplina</label>
+-                <input type="text" id="editar-disciplina" required>
++                <input type="text" id="editar-disciplina" list="lista-disciplinas" autocomplete="off" required>
+ 
+                 <label for="editar-professor">Professor</label>
+-                <input type="text" id="editar-professor" required>
++                <input type="text" id="editar-professor" list="lista-professores" autocomplete="off" placeholder="Sem professor definido">
+ 
+                 <div class="campo-edicao">
+                     <label for="editar-sala">Sala</label>
+-                    <input type="text" id="editar-sala" name="sala" placeholder="Ex: Laboratório 01" required>
++                    <input type="text" id="editar-sala" name="sala" placeholder="Ex: Laboratório 01" maxlength="100" required>
+                 </div>
+ 
++                <p class="erro" id="editar-erro"></p>
++
+                 <button type="submit" id="salvar-edicao-aula">Salvar</button>
+             </form>
++
++            <datalist id="lista-disciplinas"></datalist>
++            <datalist id="lista-professores"></datalist>
+         </dialog>
+ 
+         <!-- BUSCA -->
+diff --git a/frontend/script.js b/frontend/script.js
+index d47dcfc..7895607 100644
+--- a/frontend/script.js
++++ b/frontend/script.js
+@@ -6,25 +6,55 @@ document.addEventListener("DOMContentLoaded", async function () {
+     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+ 
+     // ===== TOAST =====
+-    function mostrarToast(mensagem, tipo = 'info') {
++    // tipo: 'erro' (vermelho), 'aviso' (amarelo), 'info' (azul) ou 'sucesso' (verde)
++    // Obs.: o toast fica ATRÁS de um <dialog> aberto, por isso os modais
++    // mostram suas mensagens dentro deles.
++    function mostrarToast(mensagem, tipo = 'info', duracao = 3500) {
+         const toast = document.createElement('div');
+         toast.textContent = mensagem;
+ 
++        const cores = {
++            erro: '#ef4444',
++            aviso: '#f59e0b',
++            info: '#3b82f6'
++        };
++
+         Object.assign(toast.style, {
+             position: 'fixed',
+             bottom: '20px',
+             right: '20px',
++            maxWidth: 'min(380px, 90vw)',
+             padding: '12px 20px',
+             borderRadius: '10px',
+             color: '#fff',
+-            background: tipo === 'erro' ? '#ef4444' : '#22c55e',
++            background: cores[tipo] || '#22c55e',
+             zIndex: 99999,
+             fontSize: '0.9rem',
+             boxShadow: '0 4px 12px rgba(0,0,0,.3)'
+         });
+ 
+         document.body.appendChild(toast);
+-        setTimeout(() => toast.remove(), 3500);
++        setTimeout(() => toast.remove(), duracao);
++    }
++
++    // Envia JSON para a API e devolve { ok, status, dados }.
++    async function enviarJson(url, metodo, corpo) {
++        const resposta = await fetch(url, {
++            method: metodo,
++            credentials: 'same-origin',
++            headers: { 'Content-Type': 'application/json' },
++            body: JSON.stringify(corpo)
++        });
++
++        let dados = {};
++
++        try {
++            dados = await resposta.json();
++        } catch (erro) {
++            dados = {};
++        }
++
++        return { ok: resposta.ok, status: resposta.status, dados };
+     }
+ 
+     // ===== VERIFICAR SESSÃO =====
+@@ -163,6 +193,14 @@ document.addEventListener("DOMContentLoaded", async function () {
+                 if (info && info.email) {
+                     telaLogin.style.display = 'none';
+                     telaSite.style.display = 'flex';
++
++                    mostrarToast(
++                        'Login realizado! Abra o menu (☰) e vá em "Segurança" para cadastrar o seu e-mail e a sua senha.',
++                        'info',
++                        9000
++                    );
++
++                    await carregarHorariosPadrao();
+                 } else {
+                     senhaErro.textContent = 'Não foi possível validar sua sessão.';
+                     btnLogin.disabled = false;
+@@ -1050,25 +1088,25 @@ document.addEventListener("DOMContentLoaded", async function () {
+                             normalizarHorario(item.horario) === horarioLinha
+                         );
+ 
+-                        aulas.forEach((aula, index) => {
+-                            if (index > 0) {
+-                                td.appendChild(document.createElement('br'));
+-                            }
++                        aulas.forEach(aula => {
+ 
+-                            // Identifica o grupo quando a visualização
+-                            // está mostrando todos os grupos.
+-                            
++                            // Cada aula fica em seu próprio bloco: assim, na
++                            // visualização "Todos os grupos", dá para editar
++                            // a aula do Grupo A e a do Grupo B separadamente.
++                            const item = document.createElement('div');
++                            item.className = 'aula-item';
++                            item.dataset.idHorario = aula.id_horario;
+ 
+                             const disciplina = document.createElement('span');
+                             disciplina.textContent = aula.materia || 'Disciplina';
+-                            td.appendChild(disciplina);
++                            item.appendChild(disciplina);
+ 
+                             const professor = document.createElement('span');
+                             professor.className = 'professor-aula';
+                             professor.textContent =
+                                 aula.professor || 'Professor não definido';
+ 
+-                            td.appendChild(professor);
++                            item.appendChild(professor);
+ 
+                             const sala = document.createElement('span');
+                             sala.className = 'sala-aula';
+@@ -1078,14 +1116,8 @@ document.addEventListener("DOMContentLoaded", async function () {
+                                 sala.title = 'Sala não cadastrada';
+                             }
+ 
+-                            td.appendChild(sala);
+-
+-                            if (index === 0) {
+-                                td.dataset.disciplina = aula.materia || '';
+-                                td.dataset.professor = aula.professor || '';
+-                                td.dataset.sala = aula.sala || '';
+-                                td.dataset.idHorario = aula.id_horario;
+-                            }
++                            item.appendChild(sala);
++                            td.appendChild(item);
+                         });
+ 
+                         tr.appendChild(td);
+@@ -1098,6 +1130,10 @@ document.addEventListener("DOMContentLoaded", async function () {
+ 
+         select.addEventListener('change', preencherTabela);
+ 
++        // Permite redesenhar a grade depois de uma edição,
++        // mantendo o grupo que estava selecionado.
++        table.atualizarGrade = preencherTabela;
++
+         preencherTabela();
+ 
+         return table;
+@@ -1146,6 +1182,7 @@ document.addEventListener("DOMContentLoaded", async function () {
+ 
+         horarios.forEach(item => {
+             const tr = document.createElement('tr');
++            tr.dataset.idHorario = item.id_horario;
+ 
+             const grupoTexto =
+                 item.grupo === 'A/Inteira'
+@@ -1178,9 +1215,15 @@ document.addEventListener("DOMContentLoaded", async function () {
+         gradesContainer.appendChild(tabela);
+     }
+ 
++    // Horários atualmente carregados (usados pela edição de aulas).
++    let todosHorarios = [];
++    let horariosPesquisa = null; // null = as seis grades estão na tela
++
+     async function carregarHorariosPadrao() {
+         try {
+             const horarios = await buscarHorarios();
++            todosHorarios = horarios;
++            horariosPesquisa = null;
+             popularFiltros(horarios);
+             renderizarGradesPadrao(horarios);
+         } catch (erro) {
+@@ -1209,6 +1252,7 @@ document.addEventListener("DOMContentLoaded", async function () {
+             }
+ 
+             const horarios = await buscarHorarios(filtros);
++            horariosPesquisa = horarios;
+             renderizarTabelaPesquisa(horarios);
+         } catch (erro) {
+             console.error('ERRO NA CONSULTA:', erro);
+@@ -1223,16 +1267,8 @@ document.addEventListener("DOMContentLoaded", async function () {
+         await carregarHorariosPadrao();
+     });
+ 
+-    // Primeira exibição: as seis grades padrão.
+-    await carregarHorariosPadrao();
+-    //fechar modal segurança
+-    const modalSeguranca = document.getElementById('modal-2');
+-const fecharSeguranca = document.querySelector('.fechar-seguranca');
+-
+-fecharSeguranca?.addEventListener('click', () => {
+-    modalSeguranca?.close();
+-});
+-
++    // As grades só são carregadas quando existe sessão (logo após o login
++    // ou, se o cookie ainda for válido, ao abrir a página).
+     // ===== MODAL DE EDIÇÃO DAS AULAS =====
+     const modalEditarAula = document.getElementById('modal-editar-aula');
+     const fecharEdicaoAula = document.getElementById('fechar-edicao-aula');
+@@ -1240,89 +1276,400 @@ fecharSeguranca?.addEventListener('click', () => {
+     const inputDisciplina = document.getElementById('editar-disciplina');
+     const inputProfessor = document.getElementById('editar-professor');
+     const inputSala = document.getElementById('editar-sala');
++    const editarErro = document.getElementById('editar-erro');
++    const editarInfo = document.getElementById('editar-aula-info');
++    const btnSalvarEdicao = document.getElementById('salvar-edicao-aula');
++    const listaDisciplinas = document.getElementById('lista-disciplinas');
++    const listaProfessores = document.getElementById('lista-professores');
+ 
+-    let celulaSelecionada = null;
++    let aulaEmEdicao = null;
++    let opcoesEdicaoCarregadas = false;
++
++    // Preenche as sugestões (datalist) de disciplina e professor.
++    async function carregarOpcoesEdicao() {
++        if (opcoesEdicaoCarregadas) return;
++
++        try {
++            const resposta = await fetch(base_url + '/opcoes_edicao', {
++                method: 'GET',
++                credentials: 'same-origin'
++            });
++
++            if (!resposta.ok) return;
++
++            const dados = await resposta.json();
++
++            const preencher = (datalist, nomes) => {
++                datalist.innerHTML = '';
++
++                (nomes || []).forEach(nome => {
++                    const opcao = document.createElement('option');
++                    opcao.value = nome;
++                    datalist.appendChild(opcao);
++                });
++            };
++
++            preencher(listaDisciplinas, dados.materias);
++            preencher(listaProfessores, dados.professores);
++
++            opcoesEdicaoCarregadas = true;
++
++        } catch (erro) {
++            console.error('Erro ao carregar opções de edição:', erro);
++        }
++    }
++
++    function buscarAulaPorId(id) {
++        return (
++            todosHorarios.find(h => Number(h.id_horario) === id) ||
++            horariosPesquisa?.find(h => Number(h.id_horario) === id) ||
++            null
++        );
++    }
++
++    // Recria os filtros (novas salas, professores...) sem perder a seleção.
++    function atualizarOpcoesFiltros() {
++        const selecionados = {};
++
++        Object.entries(controlesFiltro).forEach(([chave, select]) => {
++            selecionados[chave] = select?.value || '';
++        });
++
++        popularFiltros(todosHorarios);
++
++        Object.entries(controlesFiltro).forEach(([chave, select]) => {
++            if (select) select.value = selecionados[chave];
++        });
++    }
++
++    // Redesenha o que está na tela (grades ou resultado da pesquisa).
++    function atualizarVisaoAtual() {
++        if (horariosPesquisa) {
++            renderizarTabelaPesquisa(horariosPesquisa);
++            return;
++        }
++
++        document.querySelectorAll('table.grade').forEach(tabela => {
++            tabela.atualizarGrade?.();
++        });
++    }
++
++    // Copia para a memória o que o servidor acabou de salvar.
++    function aplicarEdicao(aula) {
++        [todosHorarios, horariosPesquisa || []].forEach(lista => {
++            lista.forEach(item => {
++                if (Number(item.id_horario) !== Number(aula.id_horario)) return;
++
++                item.id_materia = aula.id_materia;
++                item.materia = aula.materia;
++                item.id_professor = aula.id_professor;
++                item.professor = aula.professor;
++                item.sala = aula.sala;
++            });
++        });
++
++        atualizarOpcoesFiltros();
++        atualizarVisaoAtual();
++    }
++
++    function abrirEdicao(id) {
++        const aula = buscarAulaPorId(id);
++
++        if (!aula) return;
++
++        aulaEmEdicao = aula;
++
++        const grupo = aula.grupo === 'B' ? 'Grupo B' : 'Grupo A ou Classe Inteira';
++
++        editarInfo.textContent = [
++            aula.dia_semana,
++            normalizarHorario(aula.horario),
++            obterNomeTurma(aula),
++            grupo
++        ].join(' · ');
++
++        inputDisciplina.value = aula.materia || '';
++        inputProfessor.value = aula.professor || '';
++        inputSala.value = aula.sala || '';
++        editarErro.textContent = '';
++
++        carregarOpcoesEdicao();
++        modalEditarAula.showModal();
++    }
++
++    function fecharEdicao() {
++        modalEditarAula.close();
++        aulaEmEdicao = null;
++    }
+ 
+     if (
+         modalEditarAula &&
+         formEditarAula &&
+         inputDisciplina &&
+-        inputProfessor && 
++        inputProfessor &&
+         inputSala
+     ) {
+ 
++        // Clique em uma aula (grade) ou em uma linha (pesquisa) abre a edição.
+         document.addEventListener('click', (e) => {
+ 
+-            const celula = e.target.closest(
+-                '.grade tbody td:not(:first-child):not([colspan])'
+-            );
+-
+-            if (!celula) return;
++            const alvo = e.target.closest('.grade [data-id-horario]');
+ 
+-            celulaSelecionada = celula;
++            if (alvo) {
++                abrirEdicao(Number(alvo.dataset.idHorario));
++                return;
++            }
+ 
+-            inputDisciplina.value = celula.dataset.disciplina || '';
+-            inputProfessor.value = celula.dataset.professor || '';
+-            inputSala.value = celula.dataset.sala || '';
++            const celulaVazia = e.target.closest(
++                '.grade:not(.tabela-pesquisa) tbody td:not(:first-child):not([colspan])'
++            );
+ 
+-            modalEditarAula.showModal();
++            if (celulaVazia) {
++                mostrarToast('Não há aula cadastrada neste horário para editar.', 'aviso');
++            }
+         });
+ 
+-        formEditarAula.addEventListener('submit', (e) => {
++        formEditarAula.addEventListener('submit', async (e) => {
+             e.preventDefault();
+ 
+-            if (!celulaSelecionada) return;
++            if (!aulaEmEdicao) return;
+ 
+             const disciplina = inputDisciplina.value.trim();
+             const professor = inputProfessor.value.trim();
+             const sala = inputSala.value.trim();
+ 
+-            if (!disciplina || !professor) return;
++            if (!disciplina) {
++                editarErro.textContent = 'Informe a disciplina.';
++                return;
++            }
+ 
+-            celulaSelecionada.dataset.disciplina = disciplina;
+-            celulaSelecionada.dataset.professor = professor;
+-            celulaSelecionada.dataset.sala = sala;
++            editarErro.textContent = '';
++            btnSalvarEdicao.disabled = true;
+ 
+-            celulaSelecionada.innerHTML = '';
++            try {
++                const { ok, dados } = await enviarJson(
++                    `${base_url}/horarios/${aulaEmEdicao.id_horario}`,
++                    'PUT',
++                    { disciplina, professor, sala }
++                );
+ 
+-            const spanDisciplina = document.createElement('span');
+-            spanDisciplina.textContent = disciplina;
++                if (!ok) {
++                    editarErro.textContent =
++                        dados.mensagem || 'Não foi possível salvar a aula.';
++                    return;
++                }
+ 
+-            const spanProfessor = document.createElement('span');
+-            spanProfessor.className = 'professor-aula';
+-            spanProfessor.textContent = professor;
++                aplicarEdicao(dados.aula);
++                fecharEdicao();
+ 
+-            const spanSala = document.createElement('span');
+-            spanSala.className = 'sala-aula';
+-            spanSala.textContent = sala || '—';
++                if (dados.alterado) {
++                    mostrarToast('Aula atualizada com sucesso!', 'sucesso');
++                } else {
++                    mostrarToast('Nenhuma alteração foi feita.', 'aviso');
++                }
++
++            } catch (erro) {
++                console.error('Erro ao salvar aula:', erro);
++                editarErro.textContent = 'Erro de conexão com o servidor.';
+ 
+-            if (!sala) {
+-                spanSala.title = 'Sala não cadastrada';
++            } finally {
++                btnSalvarEdicao.disabled = false;
+             }
++        });
+ 
+-            celulaSelecionada.append(
+-                spanDisciplina,
+-                spanProfessor,
+-                spanSala
+-            );
++        fecharEdicaoAula?.addEventListener('click', fecharEdicao);
+ 
+-            modalEditarAula.close();
+-            celulaSelecionada = null;
++        modalEditarAula.addEventListener('click', (e) => {
++            if (e.target === modalEditarAula) {
++                fecharEdicao();
++            }
+         });
+ 
+-        fecharEdicaoAula?.addEventListener('click', () => {
+-            modalEditarAula.close();
+-            celulaSelecionada = null;
++        // Esc também fecha o modal: garante que nada fique selecionado.
++        modalEditarAula.addEventListener('close', () => {
++            aulaEmEdicao = null;
+         });
++    }
+ 
+-        modalEditarAula.addEventListener('click', (e) => {
+-            if (e.target === modalEditarAula) {
+-                modalEditarAula.close();
+-                celulaSelecionada = null;
++    // ===== MODAL DE SEGURANÇA (trocar e-mail e senha) =====
++    const modalSeguranca = document.getElementById('modal-2');
++    const fecharSeguranca = document.getElementById('fechar-seguranca');
++
++    const formAlterarEmail = document.getElementById('form-alterar-email');
++    const segEmailAtual = document.getElementById('seg-email-atual');
++    const segEmailNovo = document.getElementById('seg-email-novo');
++    const segEmailConfirmar = document.getElementById('seg-email-confirmar');
++    const segEmailErro = document.getElementById('seg-email-erro');
++    const segEmailSucesso = document.getElementById('seg-email-sucesso');
++    const btnSalvarEmail = document.getElementById('btn-salvar-email');
++
++    const formAlterarSenha = document.getElementById('form-alterar-senha');
++    const segSenhaAtual = document.getElementById('seg-senha-atual');
++    const segSenhaNova = document.getElementById('seg-senha-nova');
++    const segSenhaConfirmar = document.getElementById('seg-senha-confirmar');
++    const segRequisitos = document.getElementById('seg-requisitos');
++    const segSenhaErro = document.getElementById('seg-senha-erro');
++    const segSenhaSucesso = document.getElementById('seg-senha-sucesso');
++    const btnSalvarSenha = document.getElementById('btn-salvar-senha');
++
++    // Atualiza a lista de requisitos e diz se a senha cumpre todos.
++    function atualizarRequisitosSeguranca() {
++        let tudoOk = true;
++
++        for (const [nome, teste] of Object.entries(requisitos)) {
++            const li = segRequisitos.querySelector(`[data-req="${nome}"]`);
++            const icone = li.querySelector('.icone');
++            const cumprido = teste(segSenhaNova.value);
++
++            li.classList.toggle('ok', cumprido);
++            icone.classList.toggle('ok', cumprido);
++            icone.textContent = cumprido ? '✓' : '✗';
++
++            if (!cumprido) tudoOk = false;
++        }
++
++        return tudoOk;
++    }
++
++    function limparModalSeguranca() {
++        formAlterarEmail.reset();
++        formAlterarSenha.reset();
++
++        [segEmailErro, segEmailSucesso, segSenhaErro, segSenhaSucesso].forEach(p => {
++            p.textContent = '';
++        });
++
++        segRequisitos.classList.remove('visivel');
++        atualizarRequisitosSeguranca();
++    }
++
++    fecharSeguranca?.addEventListener('click', () => {
++        modalSeguranca.close();
++    });
++
++    // Limpa os campos sempre que fechar (pelo X ou pela tecla Esc).
++    modalSeguranca?.addEventListener('close', limparModalSeguranca);
++
++    // --- Trocar e-mail ---
++    formAlterarEmail?.addEventListener('submit', async (e) => {
++        e.preventDefault();
++
++        segEmailErro.textContent = '';
++        segEmailSucesso.textContent = '';
++
++        const emailAtual = segEmailAtual.value.trim();
++        const novoEmail = segEmailNovo.value.trim();
++        const confirmar = segEmailConfirmar.value.trim();
++
++        if (!emailRegex.test(emailAtual) || !emailRegex.test(novoEmail)) {
++            segEmailErro.textContent = 'Digite e-mails válidos.';
++            return;
++        }
++
++        if (novoEmail.toLowerCase() !== confirmar.toLowerCase()) {
++            segEmailErro.textContent = 'Os e-mails não coincidem.';
++            return;
++        }
++
++        btnSalvarEmail.disabled = true;
++
++        try {
++            const { ok, dados } = await enviarJson(
++                base_url + '/alterar_email',
++                'POST',
++                { email_atual: emailAtual, novo_email: novoEmail }
++            );
++
++            if (!ok) {
++                segEmailErro.textContent =
++                    dados.mensagem || 'Não foi possível alterar o e-mail.';
++                return;
++            }
++
++            formAlterarEmail.reset();
++            segEmailSucesso.textContent =
++                'E-mail alterado! Use o novo e-mail no próximo login.';
++
++        } catch (erro) {
++            console.error('Erro ao alterar e-mail:', erro);
++            segEmailErro.textContent = 'Erro de conexão com o servidor.';
++
++        } finally {
++            btnSalvarEmail.disabled = false;
++        }
++    });
++
++    // --- Trocar senha ---
++    if (segSenhaNova && segRequisitos) {
++        segSenhaNova.addEventListener('focus', () => {
++            segRequisitos.classList.add('visivel');
++            atualizarRequisitosSeguranca();
++        });
++
++        segSenhaNova.addEventListener('blur', () => {
++            if (atualizarRequisitosSeguranca()) {
++                segRequisitos.classList.remove('visivel');
+             }
+         });
++
++        segSenhaNova.addEventListener('input', atualizarRequisitosSeguranca);
+     }
+ 
++    formAlterarSenha?.addEventListener('submit', async (e) => {
++        e.preventDefault();
++
++        segSenhaErro.textContent = '';
++        segSenhaSucesso.textContent = '';
++
++        if (!segSenhaAtual.value) {
++            segSenhaErro.textContent = 'Informe a senha atual.';
++            return;
++        }
++
++        if (!atualizarRequisitosSeguranca()) {
++            segRequisitos.classList.add('visivel');
++            segSenhaErro.textContent = 'A nova senha não atende aos requisitos.';
++            return;
++        }
++
++        if (segSenhaNova.value !== segSenhaConfirmar.value) {
++            segSenhaErro.textContent = 'As senhas não coincidem.';
++            return;
++        }
++
++        btnSalvarSenha.disabled = true;
++
++        try {
++            const { ok, dados } = await enviarJson(
++                base_url + '/alterar_senha',
++                'POST',
++                {
++                    senha_atual: segSenhaAtual.value,
++                    senha_nova: segSenhaNova.value
++                }
++            );
++
++            if (!ok) {
++                segSenhaErro.textContent =
++                    dados.mensagem || 'Não foi possível alterar a senha.';
++                return;
++            }
++
++            formAlterarSenha.reset();
++            segRequisitos.classList.remove('visivel');
++            atualizarRequisitosSeguranca();
++            segSenhaSucesso.textContent =
++                'Senha alterada! Use a nova senha no próximo login.';
++
++        } catch (erro) {
++            console.error('Erro ao alterar senha:', erro);
++            segSenhaErro.textContent = 'Erro de conexão com o servidor.';
++
++        } finally {
++            btnSalvarSenha.disabled = false;
++        }
++    });
++
+     // ===== LIMPAR BUSCA =====
+     document.getElementById('btn-limpar')?.addEventListener('click', () => {
+         document.querySelectorAll('.busca-box input').forEach(i => {
+@@ -1336,6 +1683,8 @@ fecharSeguranca?.addEventListener('click', () => {
+     if (sessao && sessao.email) {
+         telaLogin.style.display = 'none';
+         telaSite.style.display = 'flex';
++
++        await carregarHorariosPadrao();
+     }
+ 
+     // ===== MENU DROPDOWN =====
+@@ -1483,6 +1832,11 @@ fecharSeguranca?.addEventListener('click', () => {
+         renderHistorico();
+     }
+ 
++    // Fechar o modal do histórico pelo X
++    fecharHistorico?.addEventListener('click', () => {
++        modalHistorico.close();
++    });
++
+     // ===== ABRIR MODAIS =====
+     document.querySelectorAll('.btn-open-modal').forEach(button => {
+ 
+diff --git a/frontend/style.css b/frontend/style.css
+index 09e6b58..af4dd77 100644
+--- a/frontend/style.css
++++ b/frontend/style.css
+@@ -966,210 +966,125 @@ header button:focus {
+ }
+ 
+ 
+-/* MODAL DE SEGURANÇA */
++/* MODAL DE SEGURANÇA (mesmo padrão dos demais modais e formulários) */
+ 
+ .modal-seguranca {
+-    position: fixed;
+-    inset: 0;
+-    margin: auto;
+-    width: min(850px, 92vw);
++    border: 1px solid var(--color8);
++    border-radius: 30px;
++    padding: 30px;
++    width: min(450px, 92vw);
+     max-height: 90vh;
+     overflow-y: auto;
+-    padding: 32px;
+-    border: 2px solid var(--color8);
+-    border-radius: 28px;
+-    background: var(--color5);
++    margin: auto;
++    background-color: var(--color5);
+     color: var(--color10);
+-    box-shadow: 0 15px 45px rgba(31, 18, 80, 0.25);
+-}
+-
+-.modal-seguranca[open] {
+-    display: block;
++    box-shadow: 0 8px 15px -4px rgba(31, 18, 80, 0.4);
++    scrollbar-width: thin;
++    scrollbar-color: var(--color7) transparent;
+ }
+ 
+ .modal-seguranca::backdrop {
+-    background: rgba(10, 12, 30, 0.65);
+-    backdrop-filter: blur(5px);
+-}
+-
+-/* CABEÇALHO */
+-
+-.seguranca-cabecalho {
+-    padding: 5px 45px 22px 0;
+-    border-bottom: 2px solid var(--color8);
++    background: rgba(0, 0, 0, 0.5);
+ }
+ 
+-.seguranca-cabecalho h1 {
++.modal-seguranca h1 {
++    font-size: 2em;
++    text-align: center;
+     color: var(--color3);
+-    font-size: 1.8rem;
+-    font-weight: 700;
++    letter-spacing: -1px;
+ }
+ 
+-.seguranca-cabecalho p {
+-    color: var(--color6);
+-    font-size: 0.9rem;
++.seguranca-subtitulo {
++    text-align: center;
++    font-size: 0.9em;
++    margin: 4px 0 22px;
+ }
+ 
+-/* ÍCONES */
+-
+-.seguranca-icone,
+-.seguranca-card-icone {
+-    background: var(--color2);
++.seguranca-secao h2 {
++    font-size: 1.3em;
+     color: var(--color3);
+-    border: 1px solid var(--color8);
+ }
+ 
+-/* CARTÕES */
+-
+-.seguranca-conteudo {
+-    display: grid;
+-    grid-template-columns: repeat(2, minmax(0, 1fr));
+-    gap: 20px;
+-    margin-top: 25px;
+-}
+-
+-.seguranca-card {
+-    padding:24px;
+-    border: 1px solid var(--color8);
+-    border-radius: 22px;
+-    background: var(--color1);
+-    box-shadow: 0 5px 15px rgba(31, 18, 80, 0.08);
+-    transition: transform 0.2s, box-shadow 0.2s;
+-}
+-
+-.seguranca-card:hover {
+-    transform: translateY(-3px);
+-    box-shadow: 0 9px 22px rgba(31, 18, 80, 0.13);
++.seguranca-desc {
++    font-size: 0.85em;
++    margin: 2px 0 12px;
+ }
+ 
+-.seguranca-card-titulo h2 {
+-    color: var(--color3);
+-    font-size: 1.15rem;
++.seguranca-divisor {
++    border: none;
++    border-top: 2px solid var(--color8);
++    margin: 24px 0;
+ }
+ 
+-/* CAMPOS */
+-
+-.campo-seguranca {
+-    gap: 8px;
++.form-seguranca {
++    display: flex;
++    flex-direction: column;
++    text-align: left;
+ }
+ 
+-.campo-seguranca label {
+-    color: var(--color3);
+-    font-weight: 600;
++.form-seguranca label {
++    font-weight: bold;
+ }
+ 
+-.campo-seguranca input {
+-    padding: 12px 14px;
++.form-seguranca input {
++    width: 100%;
++    padding: 10px;
++    margin: 5px 0 10px;
+     border: 2px solid var(--color3);
+-    border-radius: 50px;
+-    background: var(--color5);
+-    color: var(--color10);
+-    transition: 0.2s ease;
+-    margin-bottom: 7px;
+-    margin-top: 7px;
++    border-radius: 20px;
++    outline: none;
++    font-size: 0.9em;
++    background-color: #FFFFFF;
++    color: var(--color3);
+ }
+ 
+-.campo-seguranca input:focus {
+-    border-color: var(--color3);
+-    box-shadow: 0 0 0 3px rgba(138, 82, 240, 0.15);
++.form-seguranca input:focus {
++    border: 2px solid var(--color6);
++    box-shadow: 0 0 5px 5px #909FF1;
+ }
+ 
+-
+-/* Botao X do modal de seguranca */
+-.fechar-seguranca {
+-    position: absolute;
+-    top: 18px;
+-    right: 20px;
+-    left: auto;
+-
+-    width: 35px;
+-    height: 35px;
+-
++.btn-seguranca {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+-
+-    border: none;
+-    border-radius: 8px;
+-
+-    background: transparent;
+-    color: var(--color10);
+-
+-    font-size: 25px;
++    width: 100%;
++    margin-top: 6px;
++    padding: 5px;
++    border-radius: 30px;
++    border: 2px solid #1F1250;
++    background-color: #8A52F0;
++    color: #F1ECFD;
++    font-size: 1.1em;
++    font-weight: bold;
+     cursor: pointer;
+-
+-    transition: none;
+-}
+-
+-.fechar-seguranca:hover {
+-    background: transparent;
+-    transform: none;
++    transition: all 0.3s ease-in-out;
+ }
+ 
+-/* Remove os efeitos dos cards */
+-.seguranca-card,
+-.seguranca-card:hover {
+-    transform: none;
+-    box-shadow: none;
+-    filter: none;
++.btn-seguranca:hover:not(:disabled) {
++    background-color: #1F1250;
+ }
+ 
+-.seguranca-card {
+-    transition: none;
++.btn-seguranca:disabled {
++    cursor: not-allowed;
++    opacity: 0.6;
+ }
+-@media (max-width: 700px) {
+-    .modal-seguranca {
+-        width: 94vw;
+-        max-height: 92vh;
+-        padding: 22px;
+-        border-radius: 22px;
+-    }
+ 
+-    .seguranca-conteudo {
+-        grid-template-columns: 1fr;
+-    }
++/* Mensagem de sucesso (par do .erro) */
+ 
+-    .seguranca-card {
+-        padding: 18px;
+-    }
+-
+-    .seguranca-cabecalho h1 {
+-        font-size: 1.45rem;
+-    }
++.sucesso {
++    color: green;
++    font-size: 0.7em;
++    text-align: center;
+ }
+ 
+-/* Botoes de salvar do modal de seguranca */
+-.form-seguranca button {
+-    width: 100%;
+-    padding: 12px 18px;
+-
+-    border: none;
+-    border-radius: 10px;
+-
+-    background: var(--color6);
+-    color: var(--color1);
+-
+-    font-family: 'Poppins', sans-serif;
+-    font-size: 14px;
+-    font-weight: 600;
+-
+-    cursor: pointer;
+-
+-    transition: background 0.2s ease, transform 0.2s ease;
+-    margin-top: 5px;
++.sucesso:empty {
++    display: none;
+ }
+ 
+-
+-
+-.form-seguranca button:hover {
+-    background: var(--color9);
+-    transform: translateY(-2px);
++[data-tema="escuro"] .sucesso {
++    color: #4ade80;
+ }
+ 
+-.form-seguranca button:active {
+-    transform: scale(0.98);
+-    outline: none;
+-}
+ .select-grupo select:focus {
+     border: 2px solid var(--color6);
+     box-shadow: 0 0 5px 5px #909FF1;
+@@ -1242,3 +1157,41 @@ header button:focus {
+         text-align: center;
+     }
+ }
++
++
++/* ===== EDIÇÃO DE AULA ===== */
++
++.editar-aula-info {
++    text-align: center;
++    font-size: 0.85em;
++    margin: -10px 0 15px;
++}
++
++.editar-aula-info:empty {
++    display: none;
++}
++
++#form-editar-aula .erro {
++    margin-bottom: 8px;
++}
++
++#salvar-edicao-aula {
++    cursor: pointer;
++}
++
++#salvar-edicao-aula:disabled {
++    cursor: not-allowed;
++    opacity: 0.6;
++}
++
++/* Cada aula dentro da célula (permite editar A e B separadamente) */
++
++.grade .aula-item {
++    cursor: pointer;
++}
++
++.grade .aula-item + .aula-item {
++    margin-top: 8px;
++    padding-top: 8px;
++    border-top: 1px dashed var(--color8);
++}

@@ -154,80 +154,63 @@
 
         <!-- MODAL SEGURANÇA -->
         <dialog class="modal-seguranca" id="modal-2">
-            <button type="button" id="fechar-seguranca" class="fechar-seguranca" data-modal="modal-2" aria-label="Fechar">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <button type="button" class="fechar-edicao-aula" id="fechar-seguranca" aria-label="Fechar">&times;</button>
 
-            <div class="seguranca-cabecalho">
-                <div class="seguranca-icone-titulo">
-                    <div>
-                        <h1>Segurança da conta</h1>
-                        <p>Gerencie seu e-mail e sua senha.</p>
-                    </div>
-                </div>
-            </div>
+            <h1>Segurança da conta</h1>
+            <p class="seguranca-subtitulo">Gerencie o e-mail e a senha de acesso ao sistema.</p>
 
-            <div class="seguranca-conteudo">
-                <!-- ALTERAR E-MAIL -->
-                <section class="seguranca-card seguranca-card-email">
-                    <div class="seguranca-card-titulo">
-                        <div>
-                            <h2>Alterar e-mail</h2>
-                            <p>Atualize o endereço vinculado à sua conta.</p>
-                        </div>
-                    </div>
+            <!-- ALTERAR E-MAIL -->
+            <section class="seguranca-secao">
+                <h2>Alterar e-mail</h2>
+                <p class="seguranca-desc">O novo e-mail substitui o atual: somente ele poderá entrar no sistema.</p>
 
-                    <form class="form-seguranca" id="form-alterar-email">
-                        <div class="campo-seguranca">
-                            <label for="email-atual">E-mail atual</label>
-                            <input type="email" id="email-atual" placeholder="seuemail@exemplo.com" autocomplete="email" required>
-                        </div>
-                        <div class="campo-seguranca">
-                            <label for="novo-email">Novo e-mail</label>
-                            <input type="email" id="novo-email" placeholder="novoemail@exemplo.com" autocomplete="email" required>
-                        </div>
-                        <div class="campo-seguranca">
-                            <label for="confirmar-email">Confirmar novo e-mail</label>
-                            <input type="email" id="confirmar-email" placeholder="Digite novamente o novo e-mail" autocomplete="email" required>
-                        </div>
-                        <button type="button" class="btn-seguranca btn-email">
-                             Salvar novo e-mail
-                        </button>
-                    </form>
-                </section>
+                <form class="form-seguranca" id="form-alterar-email" novalidate>
+                    <label for="seg-email-atual">E-mail atual</label>
+                    <input type="email" id="seg-email-atual" placeholder="seuemail@exemplo.com" autocomplete="username" required>
 
-                <!-- ALTERAR SENHA -->
-                <section class="seguranca-card seguranca-card-senha">
-                    <div class="seguranca-card-titulo">
-                        <div>
-                            <h2>Alterar senha</h2>
-                            <p>Escolha uma senha forte para sua conta.</p>
-                            <br>
-                        </div>
-                    </div>
+                    <label for="seg-email-novo">Novo e-mail</label>
+                    <input type="email" id="seg-email-novo" placeholder="novoemail@exemplo.com" autocomplete="email" required>
 
-                    <form class="form-seguranca" id="form-alterar-senha">
-                        <div class="campo-seguranca">
-                            <label for="senha-atual">Senha atual</label>
-                            <input type="password" id="senha-atual" placeholder="Digite sua senha atual" autocomplete="current-password" required>
-                        </div>
-                        <div class="campo-seguranca">
-                            <label for="nova-senha">Nova senha</label>
-                            <input type="password" id="nova-senha" placeholder="Digite a nova senha" autocomplete="new-password" required> <br>
-                            <small class="ajuda-seguranca">Use pelo menos 8 caracteres, uma letra maiúscula, um número e um caractere especial.</small>
-                        </div>  
-                        <div class="campo-seguranca">
-                            <label for="confirmar-senha">Confirmar nova senha</label>
-                            <input type="password" id="confirmar-senha" placeholder="Digite novamente a nova senha" autocomplete="new-password" required>
-                        </div>
-                        <button type="button" class="btn-seguranca btn-senha">
-                            </i> Salvar nova senha
-                        </button>
-                    </form>
-                </section>
-            </div>
+                    <label for="seg-email-confirmar">Confirmar novo e-mail</label>
+                    <input type="email" id="seg-email-confirmar" placeholder="Digite novamente o novo e-mail" autocomplete="email" required>
 
-            <p class="aviso-seguranca"><i class="fa-solid fa-circle-info"></i> Esta área é destinada às configurações de segurança da sua conta.</p>
+                    <p class="erro" id="seg-email-erro"></p>
+                    <p class="sucesso" id="seg-email-sucesso"></p>
+
+                    <button type="submit" class="btn-seguranca" id="btn-salvar-email">Salvar novo e-mail</button>
+                </form>
+            </section>
+
+            <hr class="seguranca-divisor">
+
+            <!-- ALTERAR SENHA -->
+            <section class="seguranca-secao">
+                <h2>Alterar senha</h2>
+                <p class="seguranca-desc">Escolha uma senha forte para a sua conta.</p>
+
+                <form class="form-seguranca" id="form-alterar-senha" novalidate>
+                    <label for="seg-senha-atual">Senha atual</label>
+                    <input type="password" id="seg-senha-atual" placeholder="Digite sua senha atual" autocomplete="current-password" required>
+
+                    <label for="seg-senha-nova">Nova senha</label>
+                    <input type="password" id="seg-senha-nova" placeholder="Digite a nova senha" autocomplete="new-password" required>
+
+                    <ul id="seg-requisitos" class="requisitos">
+                        <li data-req="tamanho"><span class="icone">✗</span> Mínimo de 8 caracteres</li>
+                        <li data-req="maiuscula"><span class="icone">✗</span> Uma letra maiúscula</li>
+                        <li data-req="numero"><span class="icone">✗</span> Um número</li>
+                        <li data-req="especial"><span class="icone">✗</span> Um caractere especial</li>
+                    </ul>
+
+                    <label for="seg-senha-confirmar">Confirmar nova senha</label>
+                    <input type="password" id="seg-senha-confirmar" placeholder="Digite novamente a nova senha" autocomplete="new-password" required>
+
+                    <p class="erro" id="seg-senha-erro"></p>
+                    <p class="sucesso" id="seg-senha-sucesso"></p>
+
+                    <button type="submit" class="btn-seguranca" id="btn-salvar-senha">Salvar nova senha</button>
+                </form>
+            </section>
         </dialog>
 
         <!-- MODAL TAMANHO DA LETRA  -->
@@ -251,20 +234,26 @@
         <dialog class="modal-editar-aula" id="modal-editar-aula">
             <button type="button" class="fechar-edicao-aula" id="fechar-edicao-aula" aria-label="Fechar">&times;</button>
             <h2>Editar aula</h2>
+            <p id="editar-aula-info" class="editar-aula-info"></p>
             <form id="form-editar-aula" method="dialog">
                 <label for="editar-disciplina">Disciplina</label>
-                <input type="text" id="editar-disciplina" required>
+                <input type="text" id="editar-disciplina" list="lista-disciplinas" autocomplete="off" required>
 
                 <label for="editar-professor">Professor</label>
-                <input type="text" id="editar-professor" required>
+                <input type="text" id="editar-professor" list="lista-professores" autocomplete="off" placeholder="Sem professor definido">
 
                 <div class="campo-edicao">
                     <label for="editar-sala">Sala</label>
-                    <input type="text" id="editar-sala" name="sala" placeholder="Ex: Laboratório 01" required>
+                    <input type="text" id="editar-sala" name="sala" placeholder="Ex: Laboratório 01" maxlength="100" required>
                 </div>
+
+                <p class="erro" id="editar-erro"></p>
 
                 <button type="submit" id="salvar-edicao-aula">Salvar</button>
             </form>
+
+            <datalist id="lista-disciplinas"></datalist>
+            <datalist id="lista-professores"></datalist>
         </dialog>
 
         <!-- BUSCA -->
